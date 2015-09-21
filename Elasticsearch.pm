@@ -1,7 +1,9 @@
 package DBIx::Class::Elasticsearch;
 use strict;
 use warnings;
-use LWP::UserAgent;
+
+use Search::Elasticsearch;
+
 use YAML::Syck;
 use File::Basename;
 use Data::Dumper;
@@ -23,15 +25,6 @@ sub searchable_fields {
     } keys %{ $cols };
 
     return @searchable_fields;
-}
-
-sub user_agent {
-    my $self = shift;
-
-    return LWP::UserAgent->new(
-        timeout => 600,
-        agent => "SOS" 
-    );
 }
 
 sub url {
@@ -60,7 +53,7 @@ sub post {
     $request->content_type('application/json');
     $request->content($content);
 
-    return $self->user_agent->request($request);
+    #return $self->user_agent->request($request);
 }
 
 sub get {
@@ -70,7 +63,7 @@ sub get {
     $request->content_type('application/json');
     $request->content($content);
 
-    return $self->user_agent->request($request);
+    #return $self->user_agent->request($request);
 }
 
 sub http_delete {
@@ -78,7 +71,7 @@ sub http_delete {
 
     my $request = HTTP::Request->new(DELETE => $url);
 
-    return $self->user_agent->request($request);
+    #return $self->user_agent->request($request);
 }
 
 sub primary_key {
