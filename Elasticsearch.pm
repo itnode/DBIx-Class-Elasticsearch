@@ -47,8 +47,10 @@ sub load_yaml {
     my $self = shift;
     my $path = dirname(__FILE__);
 
-    return YAML::Syck::LoadFile("$path/elastic_search.yml")
-        or die "Could not load settings. elastic_search.yml not found";
+    my $yml = YAML::Syck::LoadFile("$path/elastic_search.yml");
+
+    die "Could not load settings. elastic_search.yml not found" unless $yml;
+    return $yml;
 }
 
 sub post { 
