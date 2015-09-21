@@ -1,3 +1,7 @@
+## Description
+
+DBIx::Class::Elasticsearch is a Module to link your DBIx::Class Schema to Elastic faster
+
 ## Installation
 ### Install as a submodule
     $ git submodule add git@github.com:ShepFc3/DBIx::Class::Elasticsearch.git lib/DBIx::Class::Elasticsearch
