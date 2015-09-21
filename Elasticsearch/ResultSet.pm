@@ -43,4 +43,36 @@ sub batch_index {
     1;
 }
 
+sub es_mapping {
+
+    my ( $self ) = @_;
+
+    my $source = $self->result_source;
+
+    return unless $self->has_searchable;
+
+    my @fields = $self->searchable_fields;
+
+    my $mapping = {};
+
+    my $type_translations = {
+
+        varchar => { type => "string", index => "analyzed" },
+        enum => { type => "string", index => "not_analyzed", store => "yes" },
+        char => { type => "string", index => "not_analyzed", store => "yes" },
+        date => { type => "date" },
+        text => { type => "string", index => "analyzed", store => "yes", "term_vector" => "with_positions_offsets" },
+        integer => { type => "integer", index => "not_analyzed", store => "yes" },
+
+    };
+
+    for my $field ( @$fields ) {
+
+        my $column_info = $source->column_info($field);
+
+        $mapping->{$field} = $type_translations->{ $column_info->{data_type} } if $column_info->{data_type};
+    }
+
+}
+
 1;
