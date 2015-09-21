@@ -1,6 +1,6 @@
 ## Installation
 ### Install as a submodule
-    $ git submodule add git@github.com:ShepFc3/ElasticDBIx.git lib/ElasticDBIx
+    $ git submodule add git@github.com:ShepFc3/DBIx::Class::Elasticsearch.git lib/DBIx::Class::Elasticsearch
     $ git submodule init
     $ git submodule update
 
@@ -12,18 +12,18 @@
     use lib '/base/dir/lib';
 *you only need this if lib is already in your path*  
 
-### Include ElasticDBIx::Schema (optional) 
-    use base qw(ElasticDBIx::Schema DBIx::Class::Schema);
+### Include DBIx::Class::Elasticsearch::Schema (optional) 
+    use base qw(DBIx::Class::Elasticsearch::Schema DBIx::Class::Schema);
 *you need this if you want to use index_all*  
 
 ### Create ElasticResult 
-**Create a new class that includes ElasticDBIx::Result and DBIx::Class::Core**  
+**Create a new class that includes DBIx::Class::Elasticsearch::Result and DBIx::Class::Core**  
 
     package MyApp::ElasticResult;
 
     use strict;
     use warnings;
-    use base qw(ElasticDBIx::Result DBIx::Class::Core);
+    use base qw(DBIx::Class::Elasticsearch::Result DBIx::Class::Core);
 
     1;
 
@@ -38,7 +38,7 @@
     
     use strict;
     use warnings;
-    use base qw(ElasticDBIx::ResultSet DBIx::Class::ResultSet);
+    use base qw(DBIx::Class::Elasticsearch::ResultSet DBIx::Class::ResultSet);
     
     1;
 
@@ -46,7 +46,7 @@
     use base qw(MyApp::ElasticResultSet);
 
 *use this to be able to batch_index a specific resultset*  
-*neccessary when using ElasticDBIx::Schema*  
+*neccessary when using DBIx::Class::Elasticsearch::Schema*  
 
 ## Synopsis
 ### Batch index all DBIx classes with searchable fields
