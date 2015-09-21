@@ -22,11 +22,9 @@ sub index {
     warn "Indexing...\n";
 
     my @fields = $self->searchable_fields;
-    my %data = map { $_ => $self->{ '_column_data' }{ $_ } } @fields;
+    my %body = map { $_ => $self->{ '_column_data' }{ $_ } } @fields;
 
-    my $json = encode_json(\%data);
-
-    return $self->post($self->url, $json);
+    return $self->es_index(\%body);
 }
 
 sub insert {

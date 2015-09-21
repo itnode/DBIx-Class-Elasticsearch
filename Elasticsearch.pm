@@ -9,6 +9,9 @@ use File::Basename;
 use Data::Dumper;
 use mro 'c3';
 
+my $es;
+my $settings;
+
 sub has_searchable {
     my $self = shift;
 
@@ -18,38 +21,64 @@ sub has_searchable {
 sub searchable_fields {
     my $self = shift;
 
-    my $klass = $self->result_class;
-    my $cols = $klass->columns_info;
-    my @searchable_fields = grep {
-        $cols->{ $_ }->{ searchable }
-    } keys %{ $cols };
+    my $klass             = $self->result_class;
+    my $cols              = $klass->columns_info;
+    my @searchable_fields = grep { $cols->{$_}->{searchable} } keys %{$cols};
 
     return @searchable_fields;
+}
+
+sub es {
+
+    my ($self) = @_;
+
+    my $settings = $self->settings;
+
+    $es = Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ) unless $es;
+
+    return $es;
 }
 
 sub url {
     my $self = shift;
 
-    my $type = $self->result_source->name;
+    my $type     = $self->result_source->name;
     my $settings = $self->load_yaml;
 
-    return "http://" . $settings->{ host } . ":" . $settings->{ port } . "/" . $settings->{ index } . "/$type/";
+    return "http://" . $settings->{host} . ":" . $settings->{port} . "/" . $settings->{index} . "/$type/";
 }
 
-sub load_yaml {
+sub settings {
     my $self = shift;
     my $path = dirname(__FILE__);
 
-    my $yml = YAML::Syck::LoadFile("$path/elastic_search.yml");
+    if ( !$settings ) {
+        my $yml = YAML::Syck::LoadFile("$path/elastic_search.yml");
+        die "Could not load settings. elastic_search.yml not found" unless $yml;
+        $settings = $yml;
+    }
 
-    die "Could not load settings. elastic_search.yml not found" unless $yml;
-    return $yml;
+    return $settings;
 }
 
-sub post { 
-    my ($self, $url, $content) = @_;
+sub es_index {
 
-    my $request = HTTP::Request->new(POST => $url);
+    my ( $self, $body ) = @_;
+
+    $self->es->index(
+        index => $self->settings->{index},
+        id    => $self->primary_key,
+        type  => $self->result_source->name,
+        body  => $body
+
+    );
+
+}
+
+sub post {
+    my ( $self, $url, $content ) = @_;
+
+    my $request = HTTP::Request->new( POST => $url );
     $request->content_type('application/json');
     $request->content($content);
 
@@ -57,9 +86,9 @@ sub post {
 }
 
 sub get {
-    my ($self, $url, $content) = @_;
+    my ( $self, $url, $content ) = @_;
 
-    my $request = HTTP::Request->new(GET => $url);
+    my $request = HTTP::Request->new( GET => $url );
     $request->content_type('application/json');
     $request->content($content);
 
@@ -67,9 +96,9 @@ sub get {
 }
 
 sub http_delete {
-    my ($self, $url) = @_;
+    my ( $self, $url ) = @_;
 
-    my $request = HTTP::Request->new(DELETE => $url);
+    my $request = HTTP::Request->new( DELETE => $url );
 
     #return $self->user_agent->request($request);
 }
