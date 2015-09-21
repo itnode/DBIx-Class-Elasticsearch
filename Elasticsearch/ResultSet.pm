@@ -60,10 +60,11 @@ sub es_mapping {
         varchar => { type => "string", index => "analyzed" },
         enum    => { type => "string", index => "not_analyzed", store => "yes" },
         char    => { type => "string", index => "not_analyzed", store => "yes" },
-        date    => { type => "date" },
-        text    => { type => "string", index => "analyzed", store => "yes", "term_vector" => "with_positions_offsets" },
+        date => { type => "date" },
+        text => { type => "string", index => "analyzed", store => "yes", "term_vector" => "with_positions_offsets" },
         integer => { type => "integer", index => "not_analyzed", store => "yes" },
         float   => { type => "float",   index => "not_analyzed", store => "yes" },
+        decimal => { type => "float",   index => "not_analyzed", store => "yes" },
 
     };
 
