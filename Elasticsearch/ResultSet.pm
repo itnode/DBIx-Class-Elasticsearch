@@ -29,6 +29,8 @@ sub batch_index {
 
         my %result = $row->get_columns;
 
+        $result{es_id} = $row->es_id;
+
         push(@$data, \%result);
         if ($rows == $batch_size || $rows == $count) {
             warn "Batched $rows rows\n";

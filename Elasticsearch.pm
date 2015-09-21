@@ -58,7 +58,7 @@ sub es_index {
 
     $self->es->index(
         index => $self->settings->{index},
-        id    => $self->primary_key,
+        id    => $self->es_id,
         type  => $self->result_source->name,
         body  => $body
 
@@ -76,7 +76,7 @@ sub es_bulk {
 
         my $params = {
             index  => $self->settings->{index},
-            id     => $row->{ $self->primary_key },
+            id     => $row->{es_id},
             type   => $self->result_source->name,
             source => $row
         };
@@ -94,7 +94,7 @@ sub es_delete {
     my $pk = $self->primary_key;
 
     $self->es->delete(
-        id    => $self->$pk,
+        id    => $self->es_id,
         type  => $self->result_source->name,
         index => $self->settings->{index},
     );
@@ -128,11 +128,24 @@ sub http_delete {
     #return $self->user_agent->request($request);
 }
 
-sub primary_key {
+sub primary_keys {
     my $self = shift;
 
     my @ids = $self->result_source->primary_columns;
-    return $ids[0];
+    return @ids;
+}
+
+sub es_id {
+    my $self = shift;
+
+    my $concat_id = [];
+
+    for my $id ( $self->primary_keys ) {
+
+       push @$concat_id, $self->$id if $self->$id;
+    }
+
+    return join '', $concat_id;
 }
 
 1;
