@@ -15,28 +15,28 @@ sub batch_index {
     warn "Batch Indexing...\n";
     my $self = shift;
     my $batch_size = shift || 1000;
-    my ($data, $rows) = ([], 0);
+    my ( $data, $rows ) = ( [], 0 );
 
-    return unless $self->has_searchable; 
-    
+    return unless $self->has_searchable;
+
     my @fields = $self->searchable_fields;
-    my $results = $self->search(undef, { select => \@fields });
+    my $results = $self->search( undef, { select => \@fields } );
 
     my $count = $results->count;
 
-    while (my $row = $results->next) {
+    while ( my $row = $results->next ) {
         $rows++;
 
         my %result = $row->get_columns;
 
         $result{es_id} = $row->es_id;
 
-        push(@$data, \%result);
-        if ($rows == $batch_size || $rows == $count) {
+        push( @$data, \%result );
+        if ( $rows == $batch_size || $rows == $count ) {
             warn "Batched $rows rows\n";
             $self->es_bulk($data);
 
-            ($data, $rows) = ([], 0);
+            ( $data, $rows ) = ( [], 0 );
         }
     }
 
@@ -45,7 +45,7 @@ sub batch_index {
 
 sub es_mapping {
 
-    my ( $self ) = @_;
+    my ($self) = @_;
 
     my $source = $self->result_source;
 
@@ -58,15 +58,16 @@ sub es_mapping {
     my $type_translations = {
 
         varchar => { type => "string", index => "analyzed" },
-        enum => { type => "string", index => "not_analyzed", store => "yes" },
-        char => { type => "string", index => "not_analyzed", store => "yes" },
-        date => { type => "date" },
-        text => { type => "string", index => "analyzed", store => "yes", "term_vector" => "with_positions_offsets" },
+        enum    => { type => "string", index => "not_analyzed", store => "yes" },
+        char    => { type => "string", index => "not_analyzed", store => "yes" },
+        date    => { type => "date" },
+        text    => { type => "string", index => "analyzed", store => "yes", "term_vector" => "with_positions_offsets" },
         integer => { type => "integer", index => "not_analyzed", store => "yes" },
+        float   => { type => "float",   index => "not_analyzed", store => "yes" },
 
     };
 
-    for my $field ( @$fields ) {
+    for my $field (@$fields) {
 
         my $column_info = $source->column_info($field);
 
