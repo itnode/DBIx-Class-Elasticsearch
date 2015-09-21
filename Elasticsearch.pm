@@ -39,15 +39,6 @@ sub es {
     return $es;
 }
 
-sub url {
-    my $self = shift;
-
-    my $type     = $self->result_source->name;
-    my $settings = $self->load_yaml;
-
-    return "http://" . $settings->{host} . ":" . $settings->{port} . "/" . $settings->{index} . "/$type/";
-}
-
 sub settings {
     my $self = shift;
     my $path = dirname(__FILE__);
@@ -73,6 +64,27 @@ sub es_index {
 
     );
 
+}
+
+sub es_bulk {
+
+    my ( $self, $data ) = @_;
+
+    my $bulk = $self->es->bulk_helper;
+
+    for my $row (@$data) {
+
+        my $params = {
+            index  => $self->settings->{index},
+            id     => $row->{$self->primary_key},
+            type   => $self->result_source->name,
+            source => $row
+        };
+
+        $bulk->index($params);
+    }
+
+    $bulk->flush;
 }
 
 sub post {
