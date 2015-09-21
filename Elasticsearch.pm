@@ -1,4 +1,4 @@
-package DBIx::Class::Elasticsearch
+package DBIx::Class::Elasticsearch;
 use strict;
 use warnings;
 use LWP::UserAgent;
