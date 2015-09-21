@@ -76,7 +76,7 @@ sub es_bulk {
 
         my $params = {
             index  => $self->settings->{index},
-            id     => $row->{$self->primary_key},
+            id     => $row->{ $self->primary_key },
             type   => $self->result_source->name,
             source => $row
         };
@@ -85,6 +85,19 @@ sub es_bulk {
     }
 
     $bulk->flush;
+}
+
+sub es_delete {
+
+    my ( $self, $entry ) = @_;
+
+    my $pk = $self->primary_key;
+
+    $self->es->delete(
+        id    => $self->$pk,
+        type  => $self->result_source->name,
+        index => $self->settings->{index},
+    );
 }
 
 sub post {

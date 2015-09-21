@@ -63,7 +63,7 @@ sub delete {
     return do {
         if ($self->has_searchable) {
             warn "Deleting...\n";
-            $self->http_delete($self->url);
+            $self->es_delete;
         } else {
             #$self;
         }
