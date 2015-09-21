@@ -56,10 +56,12 @@ sub es_index {
 
     my ( $self, $body ) = @_;
 
+    my $type = $self->result_source->name;
+
     $self->es->index(
         index => $self->settings->{index},
-        id    => $self->es_id,
-        type  => $self->result_source->name,
+        id    => sprintf( "%s_%s", $type, $self->es_id ),
+        type  => $type,
         body  => $body
 
     );
@@ -74,10 +76,12 @@ sub es_bulk {
 
     for my $row (@$data) {
 
+        my $type = $self->result_source->name;
+
         my $params = {
             index  => $self->settings->{index},
-            id     => $row->{es_id},
-            type   => $self->result_source->name,
+            id     => sprintf ( "%s_%s", $type, $row->{es_id} ),
+            type   => $type,
             source => $row
         };
 
@@ -93,9 +97,11 @@ sub es_delete {
 
     my $pk = $self->primary_key;
 
+    my $type = $self->result_source->name;
+
     $self->es->delete(
-        id    => $self->es_id,
-        type  => $self->result_source->name,
+        id    => sprintf( "%s_%s", $type $self->es_id ),
+        type  => $type,
         index => $self->settings->{index},
     );
 }
@@ -145,7 +151,7 @@ sub es_id {
        push @$concat_id, $self->$id if $self->$id;
     }
 
-    return join '', $concat_id;
+    return join '_', @$concat_id;
 }
 
 1;
