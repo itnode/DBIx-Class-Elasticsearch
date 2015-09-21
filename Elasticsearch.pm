@@ -100,7 +100,7 @@ sub es_delete {
     my $type = $self->result_source->name;
 
     $self->es->delete(
-        id    => sprintf( "%s_%s", $type $self->es_id ),
+        id    => sprintf( "%s_%s", $type, $self->es_id ),
         type  => $type,
         index => $self->settings->{index},
     );
