@@ -1,1 +1,5 @@
-elastic_search.yml
+*.bak
+*.un~
+**.un~
+*.swp
+.~lock.**.csv#

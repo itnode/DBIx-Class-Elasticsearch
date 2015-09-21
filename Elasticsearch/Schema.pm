@@ -1,8 +1,8 @@
-package ElasticDBIx::Schema;
+package DBIx::Class::Elasticsearch::Schema;
 
 use strict;
 use warnings;
-use base qw(ElasticDBIx);
+use base qw(DBIx::Class::Elasticsearch);
 
 sub index_all {
     my $self = shift;

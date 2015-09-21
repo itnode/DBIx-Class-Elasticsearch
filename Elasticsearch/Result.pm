@@ -1,9 +1,9 @@
-package ElasticDBIx::Result;
+package DBIx::Class::Elasticsearch::Result;
 use strict;
 use warnings;
 use JSON;
 use Data::Dumper;
-use base qw(ElasticDBIx);
+use base qw(DBIx::Class::Elasticsearch);
 
 sub url {
     my $self = shift;
