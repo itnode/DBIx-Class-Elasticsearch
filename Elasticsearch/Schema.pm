@@ -22,11 +22,11 @@ sub es_mapping {
     my $self = shift;
 
     my $mappings = {};
-    my @sources  = $schema->sources;
+    my @sources  = $self->sources;
 
-    for my $source (@$sources) {
+    for my $source (@sources) {
 
-        my $rs = $schema->resultset($source);
+        my $rs = $self->resultset($source);
 
         next unless $rs->can('has_searchable') && $rs->has_searchable;
 
@@ -34,6 +34,9 @@ sub es_mapping {
     }
 
     my $props = { properties => $mappings };
+
+    use DDP;
+    p $props;
 
     $self->es->indices->delete_mapping(
         index  => $self->settings->{index},

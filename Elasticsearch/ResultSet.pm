@@ -68,7 +68,7 @@ sub es_mapping {
 
     };
 
-    for my $field (@$fields) {
+    for my $field (@fields) {
 
         my $column_info = $source->column_info($field);
 
