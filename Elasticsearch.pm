@@ -19,17 +19,16 @@ has settings_store => (
     isa => 'HashRef'
 );
 
+# TODO: move to resultset row
 sub has_searchable {
     my $self = shift;
 
     return scalar $self->searchable_fields;
 }
 
+# TODO: move to resultset row
 sub searchable_fields {
     my $self = shift;
-
-    use DDP;
-    p $self;
 
     my $klass             = $self->result_class;
     my $cols              = $klass->columns_info;
@@ -38,6 +37,7 @@ sub searchable_fields {
     return @searchable_fields;
 }
 
+# TODO move to schema
 sub es {
 
     my ($self) = @_;
@@ -49,6 +49,7 @@ sub es {
     return $self->es_store;
 }
 
+# TODO move to schema
 sub settings {
     my $self = shift;
     my $path = dirname(__FILE__);
@@ -62,6 +63,7 @@ sub settings {
     return $self->settings_store;
 }
 
+# TODO move to Row
 sub es_index {
 
     my ( $self, $body ) = @_;
@@ -78,6 +80,7 @@ sub es_index {
 
 }
 
+# TODO move to RS
 sub es_bulk {
 
     my ( $self, $data ) = @_;
@@ -101,6 +104,7 @@ sub es_bulk {
     $bulk->flush;
 }
 
+# TODO move to Row
 sub es_delete {
 
     my ( $self, $entry ) = @_;
@@ -116,6 +120,7 @@ sub es_delete {
     );
 }
 
+# use row->id
 sub primary_keys {
     my $self = shift;
 
@@ -123,6 +128,7 @@ sub primary_keys {
     return @ids;
 }
 
+# use row->id
 sub es_id {
     my $self = shift;
 
