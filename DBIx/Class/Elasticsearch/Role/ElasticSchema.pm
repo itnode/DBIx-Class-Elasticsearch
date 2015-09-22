@@ -3,9 +3,9 @@ package DBIx::Class::Elasticsearch::Role::ElasticSchema;
 use strict;
 use warnings;
 
-use Moose;
+use Moose::Role;
 
-with 'DBIx::Class::Elasticsearch::ElasticBase';
+with 'DBIx::Class::Elasticsearch::Role::ElasticBase';
 
 sub es {
 
@@ -20,12 +20,11 @@ sub es {
 
 sub settings {
     my $self = shift;
-    my $path = dirname(__FILE__);
 
     if ( !$self->settings_store ) {
-        my $yml = YAML::Syck::LoadFile("$path/elastic_search.yml");
-        die "Could not load settings. elastic_search.yml not found" unless $yml;
-        $self->settings_store($yml);
+
+        my $config = OASYS::Utils->config;
+        $self->settings_store($config->{elastic});
     }
 
     return $self->settings_store;

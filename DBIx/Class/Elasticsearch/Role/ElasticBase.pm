@@ -7,7 +7,7 @@ use Search::Elasticsearch;
 use YAML::Syck;
 use File::Basename;
 use Data::Dumper;
-use Moose;
+use Moose::Role;
 
 has es_store => (
     is  => 'rw',

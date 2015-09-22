@@ -83,6 +83,16 @@ sub es_index {
 
 }
 
+sub es {
+
+    return shift->result_source->schema->es;
+}
+
+sub settings {
+
+    return shift->result_source->schema->settings;
+}
+
 sub es_delete {
 
     my ( $self, $entry ) = @_;
@@ -101,7 +111,7 @@ sub es_id {
 
     my $concat_id = [];
 
-    my @ids = $row->id;
+    my @ids = $self->id;
 
     return join '_', @ids;
 }

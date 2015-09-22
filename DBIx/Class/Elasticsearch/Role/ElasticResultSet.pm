@@ -3,7 +3,7 @@ package DBIx::Class::Elasticsearch::Role::ElasticResultSet;
 use strict;
 use warnings;
 
-use Moose;
+use Moose::Role;
 
 with 'DBIx::Class::Elasticsearch::Role::ElasticBase';
 
