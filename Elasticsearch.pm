@@ -7,10 +7,17 @@ use Search::Elasticsearch;
 use YAML::Syck;
 use File::Basename;
 use Data::Dumper;
-use mro 'c3';
+use Moose;
 
-my $es;
-my $settings;
+has es => (
+    is  => 'rw',
+    isa => 'Object'
+);
+
+has settings_store => (
+    is  => 'rw',
+    isa => 'HashRef'
+);
 
 sub has_searchable {
     my $self = shift;
@@ -34,7 +41,7 @@ sub es {
 
     my $settings = $self->settings;
 
-    $es = Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ) unless $es;
+    $self->es = Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ) unless $es;
 
     return $es;
 }
@@ -43,13 +50,13 @@ sub settings {
     my $self = shift;
     my $path = dirname(__FILE__);
 
-    if ( !$settings ) {
+    if ( !$self->settings_store ) {
         my $yml = YAML::Syck::LoadFile("$path/elastic_search.yml");
         die "Could not load settings. elastic_search.yml not found" unless $yml;
-        $settings = $yml;
+        $self->settings_store = $yml;
     }
 
-    return $settings;
+    return $self->settings_store;
 }
 
 sub es_index {
@@ -80,7 +87,7 @@ sub es_bulk {
 
         my $params = {
             index  => $self->settings->{index},
-            id     => sprintf ( "%s_%s", $type, $row->{es_id} ),
+            id     => sprintf( "%s_%s", $type, $row->{es_id} ),
             type   => $type,
             source => $row
         };
@@ -106,34 +113,6 @@ sub es_delete {
     );
 }
 
-sub post {
-    my ( $self, $url, $content ) = @_;
-
-    my $request = HTTP::Request->new( POST => $url );
-    $request->content_type('application/json');
-    $request->content($content);
-
-    #return $self->user_agent->request($request);
-}
-
-sub get {
-    my ( $self, $url, $content ) = @_;
-
-    my $request = HTTP::Request->new( GET => $url );
-    $request->content_type('application/json');
-    $request->content($content);
-
-    #return $self->user_agent->request($request);
-}
-
-sub http_delete {
-    my ( $self, $url ) = @_;
-
-    my $request = HTTP::Request->new( DELETE => $url );
-
-    #return $self->user_agent->request($request);
-}
-
 sub primary_keys {
     my $self = shift;
 
@@ -148,7 +127,7 @@ sub es_id {
 
     for my $id ( $self->primary_keys ) {
 
-       push @$concat_id, $self->$id if $self->$id;
+        push @$concat_id, $self->$id if $self->$id;
     }
 
     return join '_', @$concat_id;
