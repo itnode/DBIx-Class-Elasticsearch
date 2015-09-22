@@ -31,7 +31,7 @@ after 'insert' => sub {
             $self;
         }
     }
-}
+};
 
 after 'update' => sub {
     my $self = shift;
@@ -43,7 +43,7 @@ after 'update' => sub {
             $self;
         }
     }
-}
+};
 
 after 'delete' => sub {
     my $self = shift;
@@ -56,7 +56,7 @@ after 'delete' => sub {
             #$self;
         }
     }
-}
+};
 
 sub build_json {
     my $self = shift;

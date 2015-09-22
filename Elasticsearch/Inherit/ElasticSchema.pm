@@ -1,9 +1,9 @@
-package OASYS::ElasticResult;
+package DBIx::Class::Elasticsearch::Inherit::ElasticSchema;
 
 use strict;
 use warnings;
 
-use Moose::Role;
+use Moose;
 
 extends 'DBIx::Class::Elasticsearch::Schema';
 

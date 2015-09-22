@@ -9,7 +9,7 @@ use File::Basename;
 use Data::Dumper;
 use Moose;
 
-has es => (
+has es_store => (
     is  => 'rw',
     isa => 'Object'
 );
@@ -41,9 +41,9 @@ sub es {
 
     my $settings = $self->settings;
 
-    $self->es = Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ) unless $es;
+    $self->es_store = Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ) unless $self->es_store;
 
-    return $es;
+    return $self->es_store;
 }
 
 sub settings {
