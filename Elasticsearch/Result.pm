@@ -3,16 +3,10 @@ use strict;
 use warnings;
 use JSON;
 use Data::Dumper;
-use base qw(DBIx::Class::Elasticsearch);
 
-sub url {
-    my $self = shift;
+use Moose;
 
-    my $pk = $self->primary_key;
-    my $url = $self->next::method(@_);
-
-    return $url . $pk;
-}
+extends 'DBIx::Class::Elasticsearch';
 
 sub index {
     my $self = shift;
@@ -27,10 +21,8 @@ sub index {
     return $self->es_index(\%body);
 }
 
-sub insert {
+after 'insert' => sub {
     my $self = shift;
-
-    $self->next::method(@_);
 
     return do {
         if ($self->has_searchable) {
@@ -41,10 +33,8 @@ sub insert {
     }
 }
 
-sub update {
+after 'update' => sub {
     my $self = shift;
-
-    $self->next::method(@_);
 
     return do {
         if ($self->has_searchable) {
@@ -55,10 +45,8 @@ sub update {
     }
 }
 
-sub delete {
+after 'delete' => sub {
     my $self = shift;
-
-    $self->next::method(@_);
 
     return do {
         if ($self->has_searchable) {
