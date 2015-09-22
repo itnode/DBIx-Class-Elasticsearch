@@ -2,7 +2,10 @@ package DBIx::Class::Elasticsearch::Schema;
 
 use strict;
 use warnings;
-use base qw(DBIx::Class::Elasticsearch);
+
+use Moose;
+
+extends 'DBIx::Class::Elasticsearch';
 
 sub index_all {
     my $self = shift;

@@ -1,7 +1,10 @@
 package DBIx::Class::Elasticsearch::ResultSet;
 use strict;
 use warnings;
-use base qw(DBIx::Class::Elasticsearch);
+
+use Moose;
+
+extends 'DBIx::Class::Elasticsearch';
 
 sub url {
     my $self = shift;
