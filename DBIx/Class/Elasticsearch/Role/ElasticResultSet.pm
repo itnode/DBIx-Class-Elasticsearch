@@ -23,7 +23,6 @@ sub searchable_fields {
     return @searchable_fields;
 }
 
-
 sub batch_index {
     warn "Batch Indexing...\n";
     my $self = shift;
@@ -49,6 +48,7 @@ sub batch_index {
             warn "Batched $rows rows\n";
             $self->es_bulk($data);
 
+            $count = $count - $rows;
             ( $data, $rows ) = ( [], 0 );
         }
     }
@@ -72,9 +72,16 @@ sub es_bulk {
 
     my $bulk = $self->es->bulk_helper;
 
-    for my $row (@$data) {
+    for my $row_raw (@$data) {
 
         my $type = $self->result_source->name;
+
+        my $row = {};
+
+        for my $key ( keys %$row_raw ) {
+
+            $row->{$key} = $row_raw->{$key} if $row_raw->{$key};
+        }
 
         my $params = {
             index  => $self->settings->{index},
@@ -106,8 +113,9 @@ sub es_mapping {
         varchar => { type => "string", index => "analyzed" },
         enum    => { type => "string", index => "not_analyzed", store => "yes" },
         char    => { type => "string", index => "not_analyzed", store => "yes" },
-        date => { type => "date" },
-        text => { type => "string", index => "analyzed", store => "yes", "term_vector" => "with_positions_offsets" },
+        date     => { type => "date" },
+        datetime => { type => "date" },
+        text     => { type => "string", index => "analyzed", store => "yes", "term_vector" => "with_positions_offsets" },
         integer => { type => "integer", index => "not_analyzed", store => "yes" },
         float   => { type => "float",   index => "not_analyzed", store => "yes" },
         decimal => { type => "float",   index => "not_analyzed", store => "yes" },
