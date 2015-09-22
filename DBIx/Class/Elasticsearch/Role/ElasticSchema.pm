@@ -72,7 +72,6 @@ sub es_mapping {
     $self->es->indices->put_mapping(
         index  => $self->settings->{index},
         type   => "item",
-        ignore => 404,
         body   => $props,
     );
 }
