@@ -88,28 +88,14 @@ sub es_delete {
     );
 }
 
-# TODO use row->id
-sub primary_keys {
-    my $self = shift;
-
-    my @ids = $self->result_source->primary_columns;
-    return @ids;
-}
-
-# TODO use row->id
 sub es_id {
     my $self = shift;
 
     my $concat_id = [];
 
-    for my $id ( $self->primary_keys ) {
+    my @ids = $row->id;
 
-        push @$concat_id, $self->$id if $self->$id;
-    }
-
-    return join '_', @$concat_id;
+    return join '_', @ids;
 }
-
-
 
 1;
