@@ -6,7 +6,7 @@ use Data::Dumper;
 
 use Moose;
 
-extends 'DBIx::Class::Elasticsearch';
+extends 'DBIx::Class::Elasticsearch', 'DBIx::Class::Core';
 
 sub index {
     my $self = shift;
