@@ -48,7 +48,7 @@ sub es_create_index {
     my $self = shift;
 
     $self->es->indices->create(
-        index => $self->settings->{index};
+        index => $self->settings->{index}
     );
 }
 
