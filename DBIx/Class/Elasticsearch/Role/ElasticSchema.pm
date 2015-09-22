@@ -1,10 +1,58 @@
-package DBIx::Class::Elasticsearch::Inherit::ElasticSchema;
+package DBIx::Class::Elasticsearch::Role::ElasticSchema;
 
 use strict;
 use warnings;
 
 use Moose;
 
-extends 'DBIx::Class::Elasticsearch::Schema';
+with 'DBIx::Class::Elasticsearch::ElasticBase';
+
+sub index_all {
+    my $self = shift;
+
+    foreach my $source ( $self->sources ) {
+        my $klass = $self->class($source);
+
+        if ( $self->resultset($source)->can("batch_index") ) {
+            warn "Indexing source $source\n";
+            $self->resultset($source)->batch_index;
+        }
+    }
+}
+
+sub es_mapping {
+
+    my $self = shift;
+
+    my $mappings = {};
+    my @sources  = $self->sources;
+
+    for my $source (@sources) {
+
+        my $rs = $self->resultset($source);
+
+        next unless $rs->can('has_searchable') && $rs->has_searchable;
+
+        $mappings->{ $rs->result_source->name } = $rs->es_mapping;
+    }
+
+    my $props = { properties => $mappings };
+
+    use DDP;
+    p $props;
+
+    $self->es->indices->delete_mapping(
+        index  => $self->settings->{index},
+        type   => "item",
+        ignore => 404,
+    );
+
+    $self->es->indices->put_mapping(
+        index  => $self->settings->{index},
+        type   => "item",
+        ignore => 404,
+    );
+}
+
 
 1;
