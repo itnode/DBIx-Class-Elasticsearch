@@ -52,6 +52,9 @@ sub es_mapping {
 
     my $source = $self->result_source;
 
+    use DDP;
+    p $source;
+
     return unless $self->has_searchable;
 
     my @fields = $self->searchable_fields;
