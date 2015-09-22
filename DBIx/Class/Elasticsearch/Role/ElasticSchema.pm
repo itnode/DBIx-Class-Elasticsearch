@@ -43,6 +43,15 @@ sub index_all {
     }
 }
 
+sub es_create_index {
+
+    my $self = shift;
+
+    $self->es->indices->create(
+        index => $self->settings->{index};
+    );
+}
+
 sub es_create_mapping {
 
     my $self = shift;
