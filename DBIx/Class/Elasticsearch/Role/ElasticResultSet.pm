@@ -56,6 +56,16 @@ sub batch_index {
     1;
 }
 
+sub es {
+
+    return shift->result_source->schema->es;
+}
+
+sub settings {
+
+    return shift->result_source->schema->settings;
+}
+
 sub es_bulk {
 
     my ( $self, $data ) = @_;
