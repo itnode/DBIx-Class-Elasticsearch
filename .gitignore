@@ -3,4 +3,3 @@
 **.un~
 *.swp
 .~lock.**.csv#
-elastic_search.yml
