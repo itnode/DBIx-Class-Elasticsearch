@@ -24,12 +24,11 @@ sub settings {
     if ( !$self->settings_store ) {
 
         my $config = OASYS::Utils->config;
-        $self->settings_store($config->{elastic});
+        $self->settings_store( $config->{elastic} );
     }
 
     return $self->settings_store;
 }
-
 
 sub index_all {
     my $self = shift;
@@ -57,13 +56,12 @@ sub es_mapping {
 
         next unless $rs->can('has_searchable') && $rs->has_searchable;
 
-        $mappings->{ $rs->result_source->name } = $rs->es_mapping;
+        my $name = $rs->result_source->name;
+        $mappings->{$name} = $rs->es_mapping;
+        $mappings->{$name}{type} = 'multi_field';
     }
 
     my $props = { properties => $mappings };
-
-    use DDP;
-    p $props;
 
     $self->es->indices->delete_mapping(
         index  => $self->settings->{index},
@@ -75,8 +73,28 @@ sub es_mapping {
         index  => $self->settings->{index},
         type   => "item",
         ignore => 404,
+        body   => $props,
     );
 }
 
+sub es_dump_mappings {
+
+    my $self = shift;
+
+    my @sources = $self->sources;
+
+    @sources = grep { $self->resultset($_)->can('has_searchable') && $self->resultset($_)->has_searchable } @sources;
+
+    use DDP;
+    p @sources;
+
+    my $mappings = $self->es->indices->get_mapping(
+        index => $self->settings->{index},
+        type  => \@sources,
+    );
+
+    use DDP;
+    p $mappings;
+}
 
 1;
