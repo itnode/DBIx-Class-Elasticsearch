@@ -35,7 +35,7 @@ after 'insert' => sub {
 
     return do {
         if ($self->has_searchable) {
-            $self->es_index;
+            $self->index;
         } else {
             $self;
         }
@@ -47,7 +47,7 @@ after 'update' => sub {
 
     return do {
         if ($self->has_searchable) {
-            $self->es_index;
+            $self->index;
         } else {
             $self;
         }
