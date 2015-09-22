@@ -106,12 +106,7 @@ sub es_mapping {
 
     for my $field (@fields) {
 
-        use DDP;
-        p $field;
-
         my $column_info = $source->column_info($field);
-
-        p $type_translations->{ $column_info->{data_type} };
 
         $mapping->{$field} = $type_translations->{ $column_info->{data_type} } if $column_info->{data_type};
     }

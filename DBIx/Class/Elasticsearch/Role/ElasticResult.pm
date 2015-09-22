@@ -20,12 +20,22 @@ sub index {
     return $self->es_index(\%body);
 }
 
+sub searchable_fields {
+
+    return shift->result_source->resultset->searchable_fields;
+}
+
+sub has_searchable {
+
+    return shift->result_source->resultset->has_searchable;
+}
+
 after 'insert' => sub {
     my $self = shift;
 
     return do {
         if ($self->has_searchable) {
-            $self->index;
+            $self->es_index;
         } else {
             $self;
         }
@@ -37,7 +47,7 @@ after 'update' => sub {
 
     return do {
         if ($self->has_searchable) {
-            $self->index;
+            $self->es_index;
         } else {
             $self;
         }
@@ -76,8 +86,6 @@ sub es_index {
 sub es_delete {
 
     my ( $self, $entry ) = @_;
-
-    my $pk = $self->primary_key;
 
     my $type = $self->result_source->name;
 
