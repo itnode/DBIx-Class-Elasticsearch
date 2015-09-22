@@ -1,4 +1,4 @@
-package DBIx::Class::Elasticsearch;
+package DBIx::Class::Elasticsearch::Role::ElasticBase;
 use strict;
 use warnings;
 
@@ -18,24 +18,6 @@ has settings_store => (
     is  => 'rw',
     isa => 'HashRef'
 );
-
-# TODO: move to resultset row
-sub has_searchable {
-    my $self = shift;
-
-    return scalar $self->searchable_fields;
-}
-
-# TODO: move to resultset row
-sub searchable_fields {
-    my $self = shift;
-
-    my $klass             = $self->result_class;
-    my $cols              = $klass->columns_info;
-    my @searchable_fields = grep { $cols->{$_}->{searchable} } keys %{$cols};
-
-    return @searchable_fields;
-}
 
 # TODO move to schema
 sub es {

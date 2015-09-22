@@ -7,6 +7,23 @@ use Moose;
 
 with 'DBIx::Class::Elasticsearch::Role::ElasticBase';
 
+sub has_searchable {
+    my $self = shift;
+
+    return scalar $self->searchable_fields;
+}
+
+sub searchable_fields {
+    my $self = shift;
+
+    my $class             = $self->result_class;
+    my $cols              = $class->columns_info;
+    my @searchable_fields = grep { $cols->{$_}->{searchable} } keys %{$cols};
+
+    return @searchable_fields;
+}
+
+
 sub batch_index {
     warn "Batch Indexing...\n";
     my $self = shift;
@@ -37,6 +54,29 @@ sub batch_index {
     }
 
     1;
+}
+
+sub es_bulk {
+
+    my ( $self, $data ) = @_;
+
+    my $bulk = $self->es->bulk_helper;
+
+    for my $row (@$data) {
+
+        my $type = $self->result_source->name;
+
+        my $params = {
+            index  => $self->settings->{index},
+            id     => sprintf( "%s_%s", $type, $row->{es_id} ),
+            type   => $type,
+            source => $row
+        };
+
+        $bulk->index($params);
+    }
+
+    $bulk->flush;
 }
 
 sub es_mapping {
