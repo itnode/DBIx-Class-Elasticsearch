@@ -43,7 +43,7 @@ sub index_all {
     }
 }
 
-sub es_mapping {
+sub es_create_mapping {
 
     my $self = shift;
 
@@ -63,17 +63,23 @@ sub es_mapping {
 
     my $props = { properties => $mappings };
 
+    $self->es->indices->put_mapping(
+        index  => $self->settings->{index},
+        type   => "item",
+        body   => $props,
+    );
+}
+
+sub es_drop_mapping {
+
+    my $self = shift;
+
     $self->es->indices->delete_mapping(
         index  => $self->settings->{index},
         type   => "item",
         ignore => 404,
     );
 
-    $self->es->indices->put_mapping(
-        index  => $self->settings->{index},
-        type   => "item",
-        body   => $props,
-    );
 }
 
 sub es_dump_mappings {
