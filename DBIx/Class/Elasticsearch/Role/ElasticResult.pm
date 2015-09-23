@@ -5,8 +5,6 @@ use warnings;
 
 use Moose::Role;
 
-with 'DBIx::Class::Elasticsearch::Role::ElasticBase';
-
 sub es_start_index {
     my $self = shift;
 

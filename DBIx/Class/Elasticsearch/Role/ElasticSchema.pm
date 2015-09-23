@@ -5,8 +5,6 @@ use warnings;
 
 use Moose::Role;
 
-with 'DBIx::Class::Elasticsearch::Role::ElasticBase';
-
 has es_store => (
     is  => 'rw',
     isa => 'Object'
@@ -14,7 +12,7 @@ has es_store => (
 
 has connect_elasticsearch => (
     is  => 'rw',
-    isa => 'HashRef'
+    isa => 'HashRef',
     required => 0,
     default => { host => "localhost", port => 9200 },
 );
@@ -114,7 +112,7 @@ sub es_dump_mappings {
         type  => \@sources,
     );
 
-    warn "Mapping"
+    warn "Mapping";
     p $mappings;
 }
 

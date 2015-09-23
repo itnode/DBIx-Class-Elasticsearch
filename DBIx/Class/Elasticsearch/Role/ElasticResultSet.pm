@@ -5,8 +5,6 @@ use warnings;
 
 use Moose::Role;
 
-with 'DBIx::Class::Elasticsearch::Role::ElasticBase';
-
 sub es_has_searchable {
     my $self = shift;
 
