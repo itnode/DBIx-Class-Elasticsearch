@@ -6,6 +6,7 @@ use warnings;
 use Moose::Role;
 
 with 'DBIx::Class::Elasticsearch::Role::ElasticBase';
+
 has es_store => (
     is  => 'rw',
     isa => 'Object'
@@ -53,7 +54,7 @@ sub es_create_index {
     my $self = shift;
 
     $self->es->indices->create(
-        index => $self->settings->{index}
+        index => $self->es_index_name,
     );
 }
 
@@ -68,7 +69,7 @@ sub es_create_mapping {
 
         my $rs = $self->resultset($source);
 
-        next unless $rs->can('has_searchable') && $rs->has_searchable;
+        next unless $rs->can('es_has_searchable') && $rs->es_has_searchable;
 
         my $name = $rs->result_source->name;
         $mappings->{$name} = $rs->es_mapping;
@@ -78,7 +79,7 @@ sub es_create_mapping {
     my $props = { properties => $mappings };
 
     $self->es->indices->put_mapping(
-        index  => $self->settings->{index},
+        index  => $self->es_index_name,
         type   => "item",
         body   => $props,
     );
@@ -89,7 +90,7 @@ sub es_drop_mapping {
     my $self = shift;
 
     $self->es->indices->delete_mapping(
-        index  => $self->settings->{index},
+        index  => $self->es_index_name,
         type   => "item",
         ignore => 404,
     );
@@ -102,17 +103,18 @@ sub es_dump_mappings {
 
     my @sources = $self->sources;
 
-    @sources = grep { $self->resultset($_)->can('has_searchable') && $self->resultset($_)->has_searchable } @sources;
+    @sources = grep { $self->resultset($_)->can('es_has_searchable') && $self->resultset($_)->es_has_searchable } @sources;
 
+    warn "Listing sources";
     use DDP;
     p @sources;
 
     my $mappings = $self->es->indices->get_mapping(
-        index => $self->settings->{index},
+        index => $self->es_index_name,
         type  => \@sources,
     );
 
-    use DDP;
+    warn "Mapping"
     p $mappings;
 }
 

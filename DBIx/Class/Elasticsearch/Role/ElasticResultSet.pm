@@ -7,13 +7,13 @@ use Moose::Role;
 
 with 'DBIx::Class::Elasticsearch::Role::ElasticBase';
 
-sub has_searchable {
+sub es_has_searchable {
     my $self = shift;
 
     return scalar $self->searchable_fields;
 }
 
-sub searchable_fields {
+sub es_searchable_fields {
     my $self = shift;
 
     my $class             = $self->result_class;
@@ -29,9 +29,9 @@ sub batch_index {
     my $batch_size = shift || 1000;
     my ( $data, $rows ) = ( [], 0 );
 
-    return unless $self->has_searchable;
+    return unless $self->es_has_searchable;
 
-    my @fields = $self->searchable_fields;
+    my @fields = $self->es_searchable_fields;
     my $results = $self->search( undef, { select => \@fields } );
 
     my $count = $results->count;
@@ -61,16 +61,12 @@ sub es {
     return shift->result_source->schema->es;
 }
 
-sub settings {
-
-    return shift->result_source->schema->settings;
-}
-
 sub es_bulk {
 
     my ( $self, $data ) = @_;
 
     my $bulk = $self->es->bulk_helper;
+    my $schema = $self->result_source->schema;
 
     for my $row_raw (@$data) {
 
@@ -84,7 +80,7 @@ sub es_bulk {
         }
 
         my $params = {
-            index  => $self->settings->{index},
+            index  => $schema->es_index_name,
             id     => sprintf( "%s_%s", $type, $row->{es_id} ),
             type   => $type,
             source => $row
@@ -102,9 +98,9 @@ sub es_mapping {
 
     my $source = $self->result_source;
 
-    return unless $self->has_searchable;
+    return unless $self->es_has_searchable;
 
-    my @fields = $self->searchable_fields;
+    my @fields = $self->es_searchable_fields;
 
     my $mapping = {};
 

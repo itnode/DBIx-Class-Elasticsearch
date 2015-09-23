@@ -7,7 +7,7 @@ use Moose::Role;
 
 with 'DBIx::Class::Elasticsearch::Role::ElasticBase';
 
-sub index {
+sub es_start_index {
     my $self = shift;
 
     return unless $self->has_searchable;
@@ -20,22 +20,22 @@ sub index {
     return $self->es_index(\%body);
 }
 
-sub searchable_fields {
+sub es_searchable_fields {
 
-    return shift->result_source->resultset->searchable_fields;
+    return shift->result_source->resultset->es_searchable_fields;
 }
 
-sub has_searchable {
+sub es_has_searchable {
 
-    return shift->result_source->resultset->has_searchable;
+    return shift->result_source->resultset->es_has_searchable;
 }
 
 after 'insert' => sub {
     my $self = shift;
 
     return do {
-        if ($self->has_searchable) {
-            $self->index;
+        if ($self->es_has_searchable) {
+            $self->es_start_index;
         } else {
             $self;
         }
@@ -46,8 +46,8 @@ after 'update' => sub {
     my $self = shift;
 
     return do {
-        if ($self->has_searchable) {
-            $self->index;
+        if ($self->es_has_searchable) {
+            $self->es_start_index;
         } else {
             $self;
         }
@@ -58,7 +58,7 @@ after 'delete' => sub {
     my $self = shift;
 
     return do {
-        if ($self->has_searchable) {
+        if ($self->es_has_searchable) {
             warn "Deleting...\n";
             $self->es_delete;
         } else {
@@ -74,7 +74,7 @@ sub es_index {
     my $type = $self->result_source->name;
 
     $self->es->index(
-        index => $self->settings->{index},
+        index => $self->result_source->schema->es_index_name,
         id    => sprintf( "%s_%s", $type, $self->es_id ),
         type  => $type,
         body  => $body
@@ -88,11 +88,6 @@ sub es {
     return shift->result_source->schema->es;
 }
 
-sub settings {
-
-    return shift->result_source->schema->settings;
-}
-
 sub es_delete {
 
     my ( $self, $entry ) = @_;
@@ -102,14 +97,12 @@ sub es_delete {
     $self->es->delete(
         id    => sprintf( "%s_%s", $type, $self->es_id ),
         type  => $type,
-        index => $self->settings->{index},
+        index => $self->result_source->schema->es_index_name,
     );
 }
 
 sub es_id {
     my $self = shift;
-
-    my $concat_id = [];
 
     my @ids = $self->id;
 
