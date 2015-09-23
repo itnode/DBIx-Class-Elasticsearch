@@ -6,31 +6,36 @@ use warnings;
 use Moose::Role;
 
 with 'DBIx::Class::Elasticsearch::Role::ElasticBase';
+has es_store => (
+    is  => 'rw',
+    isa => 'Object'
+);
+
+has connect_elasticsearch => (
+    is  => 'rw',
+    isa => 'HashRef'
+    required => 0,
+    default => { host => "localhost", port => 9200 },
+);
 
 sub es {
 
     my ($self) = @_;
 
-    my $settings = $self->settings;
+    my $settings = $self->connect_elasticsearch;
 
     $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ) ) unless $self->es_store;
 
     return $self->es_store;
 }
 
-sub settings {
+sub es_index_name {
+
     my $self = shift;
-
-    if ( !$self->settings_store ) {
-
-        my $config = OASYS::Utils->config;
-        $self->settings_store( $config->{elastic} );
-    }
-
-    return $self->settings_store;
+    return $self->connect_elasticsearch->{index} || ref $self;
 }
 
-sub index_all {
+sub es_index_all {
     my $self = shift;
 
     foreach my $source ( $self->sources ) {
