@@ -68,3 +68,14 @@ In the Schema Role we provide an 'es_create_mapping' and an 'es_drop_mapping' fu
 The Schema role provides 'es_index_all' which will batch index all searchable rows in your application
 
     $schema->es_index_all;
+
+## Credits
+
+This module is based on Chris 'SchepFc3' Shepherd work, which you can find here:
+
+    https://github.com/ShepFc3/ElasticDBIx
+
+## Authors
+
+* Jens Gassmann  <jg@gassmann.it>
+* Patrick Kilter <pk@gassmann.it>
