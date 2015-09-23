@@ -6,63 +6,36 @@ This Fork is under heavy changes. I will update the Docs soon
 
 DBIx::Class::Elasticsearch is a Module to link your DBIx::Class Schema to Elastic faster
 
-## Installation
-### Install as a submodule
-    $ git submodule add git@github.com:ShepFc3/DBIx::Class::Elasticsearch.git lib/DBIx::Class::Elasticsearch
-    $ git submodule init
-    $ git submodule update
+## Setting up your DBIx::Model
 
-## Setup
-### Copy elastic_search.yml.sample to elastic_search.yml
-*edit file to reflect your elastic search settings*  
+### Adding role to your Schema Class
 
-### Include the base directory
-    use lib '/base/dir/lib';
-*you only need this if lib is already in your path*  
+    with 'DBIx::Class::Elasticsearch::Role::ElasticSchema';
 
-### Include DBIx::Class::Elasticsearch::Schema (optional) 
-    use base qw(DBIx::Class::Elasticsearch::Schema DBIx::Class::Schema);
-*you need this if you want to use index_all*  
+### Adding role to your ResultSet Class
 
-### Create ElasticResult 
-**Create a new class that includes DBIx::Class::Elasticsearch::Result and DBIx::Class::Core**  
+    with 'DBIx::Class::Elasticsearch::Role::ElasticResultSet';
 
-    package MyApp::ElasticResult;
+### Adding role to your Result Class
 
-    use strict;
-    use warnings;
-    use base qw(DBIx::Class::Elasticsearch::Result DBIx::Class::Core);
+    with 'DBIx::Class::Elasticsearch::Role::ElasticResult';
 
-    1;
+### Setting up your columns to use
 
-### Use ElasticResult in your Result class
-    use base qw(MyApp::ElasticResult);
+In your row object, you have to modify your add_columns section
 
-### Define searchable columns in your Result class
-    __PACKAGE__->add_columns("id", { searchable => 1 });
+    # assuming a car model
 
-### Create ElasticResultSet (optional)
-    package MyApp::ElasticResultSet;
-    
-    use strict;
-    use warnings;
-    use base qw(DBIx::Class::Elasticsearch::ResultSet DBIx::Class::ResultSet);
-    
-    1;
+    __PACKAGE__->add_columns(
+        "car_id",
+        {
+            data_type => "integer",
+            is_auto:increment => 1,
+            searchable => 1 # adds this field to the index
+            elastic_mapping => {
+                index => "analyzed"
+            } # overwrites defaults for mapping
+        }
+    );
 
-### Use ElasticResult
-    use base qw(MyApp::ElasticResultSet);
 
-*use this to be able to batch_index a specific resultset*  
-*neccessary when using DBIx::Class::Elasticsearch::Schema*  
-
-## Synopsis
-### Batch index all DBIx classes with searchable fields
-    $schema->index_all;
-
-### Index all searchable fields for a row
-    my $result = $schema->resultset('Artist')->find(1);
-    $result->index();
-
-### Batch index all searchable fields within the given resultset
-    $schema->resultset('Artist')->batch_index;
