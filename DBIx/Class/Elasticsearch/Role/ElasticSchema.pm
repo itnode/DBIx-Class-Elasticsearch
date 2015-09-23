@@ -14,7 +14,7 @@ has connect_elasticsearch => (
     is  => 'rw',
     isa => 'HashRef',
     required => 0,
-    default => { host => "localhost", port => 9200 },
+    default => sub { host => "localhost", port => 9200 },
 );
 
 sub es {
