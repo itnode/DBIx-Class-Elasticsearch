@@ -78,7 +78,7 @@ sub es_create_mapping {
         $self->es->indices->put_mapping(
             index => $self->es_index_name,
             type  => $key,
-            body  => { $key => { properties => $mappings->{ $key } } },
+            body  => { $key => { properties => $mappings->{$key} } },
         );
     }
 }
@@ -87,11 +87,21 @@ sub es_drop_mapping {
 
     my $self = shift;
 
-    $self->es->indices->delete_mapping(
-        index  => $self->es_index_name,
-        type   => "item",
-        ignore => 404,
-    );
+    my $types   = [];
+    my @sources = $self->sources;
+
+    for my $source (@sources) {
+
+        my $rs = $self->resultset($source);
+
+        next unless $rs->can('es_has_searchable') && $rs->es_has_searchable;
+
+        $self->es->indices->delete_mapping(
+            index  => $self->es_index_name,
+            type   => $source,
+            ignore => 404,
+        );
+    }
 
 }
 
