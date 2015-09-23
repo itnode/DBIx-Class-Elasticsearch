@@ -34,7 +34,7 @@ In your row object, you have to modify your add_columns section
         "car_id",
         {
             data_type => "integer",
-            is_auto:increment => 1,
+            is_auto_increment => 1,
             searchable => 1 # adds this field to the index
             elastic_mapping => {
                 index => "analyzed"
@@ -44,7 +44,7 @@ In your row object, you have to modify your add_columns section
 
 ### Running your Application
 
-DBIx::Class::Elasticsearch::Role will hooking into your insert, update and delete DBIx::Class methods. If you change Data in your Database, it will be synced with the Elastic Storage
+DBIx::Class::Elasticsearch::Role will hook into your insert, update and delete DBIx::Class::Row methods. If you change Data in your Database, it will be synced with the Elastic Storage.
 
 ### Mapping
 
