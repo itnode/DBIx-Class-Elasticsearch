@@ -126,11 +126,11 @@ sub es_mapping {
 
         my $column_info = $source->column_info($field);
         my $mapping_translation = $type_translations->{ $column_info->{data_type} } || {};
+        my $elastic_mapping = $column_info->{elastic_mapping} || {};
 
-        # merge if possible
-        @{$mapping_translation}{ keys %{ $column_info->{elastic_mapping} } } = values %{ $column_info->{elastic_mapping} } if $column_info->{elastic_mapping};
+        my $merged = { %$mapping_translation, %$elastic_mapping };
 
-        $mapping->{$field} = $mapping_translation if $mapping_translation;
+        $mapping->{$field} = $merged if $merged;
     }
 
     return $mapping;
