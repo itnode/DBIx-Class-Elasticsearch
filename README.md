@@ -42,6 +42,20 @@ In your row object, you have to modify your add_columns section
         }
     );
 
+### Default Type mappings
+
+DBIx::Class::Row data_type are mapped as following
+
+        varchar  => { type => "string", index            => "analyzed" },
+        enum     => { type => "string", index            => "not_analyzed", store => "yes" },
+        char     => { type => "string", index            => "not_analyzed", store => "yes" },
+        date     => { type => "date",   ignore_malformed => 1 },
+        datetime => { type => "date",   ignore_malformed => 1 },
+        text     => { type => "string", index            => "analyzed", store => "yes", "term_vector" => "with_positions_offsets" },
+        integer => { type => "integer", index => "not_analyzed", store => "yes" },
+        float   => { type => "float",   index => "not_analyzed", store => "yes" },
+        decimal => { type => "float",   index => "not_analyzed", store => "yes" },
+
 ### Running your Application
 
 DBIx::Class::Elasticsearch::Role will hook into your insert, update and delete DBIx::Class::Row methods. If you change Data in your Database, it will be synced with the Elastic Storage.
