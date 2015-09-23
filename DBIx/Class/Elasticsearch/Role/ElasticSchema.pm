@@ -11,10 +11,10 @@ has es_store => (
 );
 
 has connect_elasticsearch => (
-    is  => 'rw',
-    isa => 'HashRef',
+    is       => 'rw',
+    isa      => 'HashRef',
     required => 0,
-    default => sub { host => "localhost", port => 9200 },
+    default  => sub { host => "localhost", port => 9200 },
 );
 
 sub es {
@@ -23,7 +23,9 @@ sub es {
 
     my $settings = $self->connect_elasticsearch;
 
-    $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ) ) unless $self->es_store;
+    #use Log::Any::Adapter qw(Stderr);
+
+    $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ), trace_to => 'Stderr', log_to => 'Stderr' ) unless $self->es_store;
 
     return $self->es_store;
 }
@@ -51,9 +53,7 @@ sub es_create_index {
 
     my $self = shift;
 
-    $self->es->indices->create(
-        index => $self->es_index_name,
-    );
+    $self->es->indices->create( index => $self->es_index_name, );
 }
 
 sub es_create_mapping {
@@ -71,16 +71,16 @@ sub es_create_mapping {
 
         my $name = $rs->result_source->name;
         $mappings->{$name} = $rs->es_mapping;
-        $mappings->{$name}{type} = 'multi_field';
     }
 
-    my $props = { properties => $mappings };
+    for my $key ( keys %$mappings ) {
 
-    $self->es->indices->put_mapping(
-        index  => $self->es_index_name,
-        type   => "item",
-        body   => $props,
-    );
+        $self->es->indices->put_mapping(
+            index => $self->es_index_name,
+            type  => $key,
+            body  => { $key => { properties => $mappings->{ $key } } },
+        );
+    }
 }
 
 sub es_drop_mapping {

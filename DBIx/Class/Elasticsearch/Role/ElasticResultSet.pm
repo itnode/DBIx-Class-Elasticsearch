@@ -3,6 +3,8 @@ package DBIx::Class::Elasticsearch::Role::ElasticResultSet;
 use strict;
 use warnings;
 
+use DBIx::Class::ResultClass::HashRefInflator;
+
 use Moose::Role;
 
 sub es_has_searchable {
@@ -32,16 +34,16 @@ sub batch_index {
     my @fields = $self->es_searchable_fields;
     my $results = $self->search( undef, { select => \@fields } );
 
+    $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
+
     my $count = $results->count;
 
     while ( my $row = $results->next ) {
         $rows++;
 
-        my %result = $row->get_columns;
+        $row->{es_id} = $self->es_id($row);
 
-        $result{es_id} = $row->es_id;
-
-        push( @$data, \%result );
+        push( @$data, $row );
         if ( $rows == $batch_size || $rows == $count ) {
             warn "Batched $rows rows\n";
             $self->es_bulk($data);
@@ -54,6 +56,23 @@ sub batch_index {
     1;
 }
 
+sub es_id {
+
+    my $self = shift;
+    my $row  = shift;
+
+    my @pks = $self->result_source->primary_columns;
+
+    my $ids = [];
+
+    for my $pk (@pks) {
+
+        push @$ids, $row->{$pk};
+    }
+
+    return join '_', @$ids;
+}
+
 sub es {
 
     return shift->result_source->schema->es;
@@ -63,7 +82,7 @@ sub es_bulk {
 
     my ( $self, $data ) = @_;
 
-    my $bulk = $self->es->bulk_helper;
+    my $bulk   = $self->es->bulk_helper;
     my $schema = $self->result_source->schema;
 
     for my $row_raw (@$data) {
@@ -104,12 +123,12 @@ sub es_mapping {
 
     my $type_translations = {
 
-        varchar => { type => "string", index => "analyzed" },
-        enum    => { type => "string", index => "not_analyzed", store => "yes" },
-        char    => { type => "string", index => "not_analyzed", store => "yes" },
-        date     => { type => "date" },
-        datetime => { type => "date" },
-        text     => { type => "string", index => "analyzed", store => "yes", "term_vector" => "with_positions_offsets" },
+        varchar  => { type => "string", index            => "analyzed" },
+        enum     => { type => "string", index            => "not_analyzed", store => "yes" },
+        char     => { type => "string", index            => "not_analyzed", store => "yes" },
+        date     => { type => "date",   ignore_malformed => 1 },
+        datetime => { type => "date",   ignore_malformed => 1 },
+        text     => { type => "string", index            => "analyzed", store => "yes", "term_vector" => "with_positions_offsets" },
         integer => { type => "integer", index => "not_analyzed", store => "yes" },
         float   => { type => "float",   index => "not_analyzed", store => "yes" },
         decimal => { type => "float",   index => "not_analyzed", store => "yes" },
@@ -118,9 +137,9 @@ sub es_mapping {
 
     for my $field (@fields) {
 
-        my $column_info = $source->column_info($field);
+        my $column_info         = $source->column_info($field);
         my $mapping_translation = $type_translations->{ $column_info->{data_type} } || {};
-        my $elastic_mapping = $column_info->{elastic_mapping} || {};
+        my $elastic_mapping     = $column_info->{elastic_mapping} || {};
 
         my $merged = { %$mapping_translation, %$elastic_mapping };
 
