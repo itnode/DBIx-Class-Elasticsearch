@@ -18,13 +18,11 @@ sub es_start_index {
     my @fields = $self->es_searchable_fields;
     my %columns = $self->get_columns;
     my %body;
+
     for my $field ( @fields ) {
 
         $body{$field} = $columns{$field} unless $columns{$field} eq '0000-00-00';
     }
-
-    use DDP;
-    p %body;
 
     return $self->es_index(\%body);
 }
