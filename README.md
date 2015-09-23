@@ -12,6 +12,10 @@ DBIx::Class::Elasticsearch is a Module to link your DBIx::Class Schema to Elasti
 
     with 'DBIx::Class::Elasticsearch::Role::ElasticSchema';
 
+In advanced you need to handle over your Schema the connection informations for Elastic
+
+    $schema->connect_elastic( { host => "localhost", port => 9200, index => "MyApp" } );
+
 ### Adding role to your ResultSet Class
 
     with 'DBIx::Class::Elasticsearch::Role::ElasticResultSet';
@@ -38,4 +42,19 @@ In your row object, you have to modify your add_columns section
         }
     );
 
+### Running your Application
 
+DBIx::Class::Elasticsearch::Role will hooking into your insert, update and delete DBIx::Class methods. If you change Data in your Database, it will be synced with the Elastic Storage
+
+### Mapping
+
+In the Schema Role we provide an 'es_create_mapping' and an 'es_drop_mapping' function. Use them to create or delete your mapping in the Elastic Storage
+
+    $schema->es_create_mapping;
+    $schema->es_drop_mapping;
+
+### Batch indexing
+
+The Schema role provides 'es_index_all' which will batch index all searchable rows in your application
+
+    $schema->es_index_all;
