@@ -8,12 +8,18 @@ use Moose::Role;
 sub es_start_index {
     my $self = shift;
 
-    return unless $self->has_searchable;
+    return unless $self->es_has_searchable;
+
+    # reload object to proceed DateTimeColumn etc
+    $self->discard_changes;
 
     warn "Indexing...\n";
 
-    my @fields = $self->searchable_fields;
+    my @fields = $self->es_searchable_fields;
     my %body = map { $_ => $self->{ '_column_data' }{ $_ } } @fields;
+
+    use DDP;
+    p %body;
 
     return $self->es_index(\%body);
 }

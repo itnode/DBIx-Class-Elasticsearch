@@ -8,7 +8,7 @@ use Moose::Role;
 sub es_has_searchable {
     my $self = shift;
 
-    return scalar $self->searchable_fields;
+    return scalar $self->es_searchable_fields;
 }
 
 sub es_searchable_fields {
