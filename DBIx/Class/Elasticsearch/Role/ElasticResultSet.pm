@@ -56,7 +56,25 @@ sub batch_index {
     return unless $self->es_has_searchable;
 
     my @fields = $self->es_searchable_fields;
-    my $results = $self->search( undef, { select => \@fields } );
+
+    my $denormalize_rels = $self->es_denormalize_rels;
+    my $prefetch = { prefetch => [], '+columns' => [] };
+
+    for my $rel ( @$denormalize_rels ) {
+
+        $rel_rs = $self->result_source->related_class($rel);
+
+        my @rel_fields = $rel_rs->es_searchable_fields;
+
+        push @$prefetch->{prefetch}, $rel;
+
+        for my $rel_field ( @rel_fields ) {
+
+            push @{ $prefetch->{'+columns'}, sprintf( '%s.%s', $rel, $rel_field );
+        }
+    }
+
+    my $results = $self->search( undef, { select => \@fields, %$prefetch } ); # add prefetches if they are any
 
     $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
