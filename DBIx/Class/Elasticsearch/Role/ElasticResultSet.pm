@@ -25,11 +25,11 @@ sub es_denormalize_relations {
     my $self = shift;
 
     my $class = $self->result_class;
-    my @rels = $class->relationships;
+    my @rels  = $class->relationships;
 
     my $denormalized_rels = [];
 
-    for my $rel ( @rels ) {
+    for my $rel (@rels) {
 
         push @$denormalized_rels, $rel if $class->relationship_info($rel)->{es_denormalize};
     }
@@ -60,27 +60,28 @@ sub batch_index {
     my $denormalize_rels = $self->es_denormalize_rels;
     my $prefetch = { prefetch => [], '+columns' => [] };
 
-    for my $rel ( @$denormalize_rels ) {
+    for my $rel (@$denormalize_rels) {
 
-        $rel_rs = $self->result_source->related_class($rel);
+        my $rel_class_name = $self->result_source->related_class($rel);
+        my $rel_rs = $self->result_source->schema->resultset($rel_class_name);
 
         my @rel_fields = $rel_rs->es_searchable_fields;
 
-        push @$prefetch->{prefetch}, $rel;
+        push @{ $prefetch->{prefetch} }, $rel;
 
-        for my $rel_field ( @rel_fields ) {
+        for my $rel_field (@rel_fields) {
 
-            push @{ $prefetch->{'+columns'}, sprintf( '%s.%s', $rel, $rel_field );
+            push @{ $prefetch->{'+columns'} }, sprintf( '%s.%s', $rel, $rel_field );
         }
     }
 
-    my $results = $self->search( undef, { select => \@fields, %$prefetch } ); # add prefetches if they are any
+    my $results = [ $self->search( undef, { select => \@fields, %$prefetch } )->all ];    # add prefetches if they are any
 
     $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
     my $count = $results->count;
 
-    while ( my $row = $results->next ) {
+    while ( defined( my $row = shift @$results ) ) {
         $rows++;
 
         $row->{es_id} = $self->es_id($row);
