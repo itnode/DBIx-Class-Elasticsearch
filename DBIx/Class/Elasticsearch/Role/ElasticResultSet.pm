@@ -47,6 +47,72 @@ sub es_searchable_fields {
     return @searchable_fields;
 }
 
+sub es_build_prefetch_table_names {
+
+    my ($self, $wanted_relations) = @_;
+
+    # using wanted relations all over the recursion. due to the same reference it will has the same values everywhere
+
+    return unless $wanted_relations && %$wanted_relations;
+
+    my $result_class = $self->result_class;
+    my @rels = $result_class->relationships;
+
+    for my $rel ( @rels ) {
+
+        if( $wanted_relations->{$rel} ) {
+
+            delete $wanted_relations->{$rel}; # if found, it will not appear a second time
+            push @$relations, $rel;
+            my $wanted_rs = $self->result_source->schema->resultset( $self->result_source->related_class($rel) );
+
+            my $relation_names = $wanted_rs->es_build_prefetch_table_names;
+
+            if( $relation_names ) {
+
+                return { $rel => $relation_names };
+            }
+
+
+
+        }
+    }
+
+}
+
+sub es_build_prefetch_condition {
+
+    my ($self) = @_;
+
+    if ( $self->result_source->source_info->{es_index_type} eq 'primary' ) {
+
+        my $wanted_relations = { map { $_ => 1 } @{ $self->result_source->source_info->{es_wanted_relationships} } };    # create a hash for better checking
+        my $result_class = $self->result_class;
+
+        my @rels = $result_class->relationships;
+
+        my $prefetch = { prefetch => [], '+columns' => [] };
+
+        my $last_relation;
+        for my $rel (@rels) {
+
+            if ( $wanted_relations->{$rel} ) {
+
+                delete $wanted_relations->{$rel};
+
+                my @rel_fields   = $rel_rs->es_searchable_fields;
+                my $named_fields = [];
+                for my $rel_field (@rel_fields) {
+
+                    push @$named_fields, sprintf( '%s.%s', $rel, $rel_field );
+                }
+            }
+        }
+
+    }
+
+}
+
 sub batch_index {
     warn "Batch Indexing...\n";
     my $self = shift;
@@ -63,7 +129,7 @@ sub batch_index {
     for my $rel (@$denormalize_rels) {
 
         my $rel_class_name = $self->result_source->related_class($rel);
-        my $rel_rs = $self->result_source->schema->resultset($rel_class_name);
+        my $rel_rs         = $self->result_source->schema->resultset($rel_class_name);
 
         my @rel_fields = $rel_rs->es_searchable_fields;
 
