@@ -1,6 +1,8 @@
 ## Description
 
-DBIx::Class::Elasticsearch is a Module to link your DBIx::Class Schema to Elastic faster
+DBIx::Class::Elasticsearch is a Module to link your DBIx::Class Schema to Elastic faster.
+
+It helps you, to denormalize your relational database schema to fit into the document orientated elastic store
 
 ## Setting up your DBIx::Model
 
