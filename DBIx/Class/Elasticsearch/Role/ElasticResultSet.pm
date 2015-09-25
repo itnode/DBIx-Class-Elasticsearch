@@ -141,9 +141,9 @@ sub batch_index {
     my $denormalize_rels = $self->es_denormalize_rels;
     my $prefetch         = $self->es_build_prefetch;
 
-    my $results = [ $self->search( undef, { select => \@fields, %$prefetch } )->all ];    # add prefetches if they are any
+    $self->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-    $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my $results = [ $self->search( undef, $prefetch )->all ];    # add prefetches
 
     my $count = $results->count;
 
