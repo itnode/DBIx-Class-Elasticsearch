@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use DBIx::Class::ResultClass::HashRefInflator;
+use Hash::Flatten qw(:all);
 
 use Moose::Role;
 
@@ -47,70 +48,73 @@ sub es_searchable_fields {
     return @searchable_fields;
 }
 
-sub es_build_prefetch_table_names {
+sub es_build_prefetch_columns {
 
-    my ($self, $wanted_relations) = @_;
+    my ( $self, $wanted_relations_path ) = @_;
 
-    # using wanted relations all over the recursion. due to the same reference it will has the same values everywhere
+    my $flat = flatten( { paths => $wanted_relations_path } );
 
-    return unless $wanted_relations && %$wanted_relations;
+    my $columns = [ $self->es_searchable_fields ];
 
-    my $result_class = $self->result_class;
-    my @rels = $result_class->relationships;
+    for my $key ( keys %$flat ) {
 
-    for my $rel ( @rels ) {
+        my $rs       = $self;
+        my $rel_path = $key;
+        $rel_path =~ s/paths:\d+\.?//;
 
-        if( $wanted_relations->{$rel} ) {
+        if ($rel_path) {    # is a relation path
 
-            delete $wanted_relations->{$rel}; # if found, it will not appear a second time
-            push @$relations, $rel;
-            my $wanted_rs = $self->result_source->schema->resultset( $self->result_source->related_class($rel) );
+            my @relations = split( /\./, $rel_path );
 
-            my $relation_names = $wanted_rs->es_build_prefetch_table_names;
+            # every relation in path
+            for my $rel ( @relations ) {
 
-            if( $relation_names ) {
+                # rs is going deeper for each key
+                $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
 
-                return { $rel => $relation_names };
+                my $rel_fields = [ $rs->es_searchable_fields ];
+
+                for my $rel_field (@$rel_fields) {
+
+                    push @$columns, sprintf( '%s.%s', $rel, $rel_field );
+                }
             }
 
+            # last relation is a value not a key
+            my $rel = $flat->{$key};
 
+            $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
+            my $rel_fields = [ $rs->es_searchable_fields ];
 
+            for my $rel_field (@$rel_fields) {
+
+                push @$columns, sprintf( '%s.%s', $rel, $rel_field );
+            }
+
+        } else {    # is a single relation
+
+            my $rel = $flat->{$key};
+
+            $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
+            my $rel_fields = [ $rs->es_searchable_fields ];
+
+            for my $rel_field (@$rel_fields) {
+
+                push @$columns, sprintf( '%s.%s', $rel, $rel_field );
+            }
         }
     }
 
+    return $columns;
 }
 
-sub es_build_prefetch_condition {
+sub es_build_prefetch {
 
     my ($self) = @_;
 
-    if ( $self->result_source->source_info->{es_index_type} eq 'primary' ) {
+    return $self unless my $wanted_relations_path = $self->result_source->source_info->{es_wanted_relations_path};
 
-        my $wanted_relations = { map { $_ => 1 } @{ $self->result_source->source_info->{es_wanted_relationships} } };    # create a hash for better checking
-        my $result_class = $self->result_class;
-
-        my @rels = $result_class->relationships;
-
-        my $prefetch = { prefetch => [], '+columns' => [] };
-
-        my $last_relation;
-        for my $rel (@rels) {
-
-            if ( $wanted_relations->{$rel} ) {
-
-                delete $wanted_relations->{$rel};
-
-                my @rel_fields   = $rel_rs->es_searchable_fields;
-                my $named_fields = [];
-                for my $rel_field (@rel_fields) {
-
-                    push @$named_fields, sprintf( '%s.%s', $rel, $rel_field );
-                }
-            }
-        }
-
-    }
-
+    return { prefetch => $wanted_relations_path, '+columns' => $self->es_build_prefetch_columns($wanted_relations_path) };
 }
 
 sub batch_index {
@@ -124,22 +128,7 @@ sub batch_index {
     my @fields = $self->es_searchable_fields;
 
     my $denormalize_rels = $self->es_denormalize_rels;
-    my $prefetch = { prefetch => [], '+columns' => [] };
-
-    for my $rel (@$denormalize_rels) {
-
-        my $rel_class_name = $self->result_source->related_class($rel);
-        my $rel_rs         = $self->result_source->schema->resultset($rel_class_name);
-
-        my @rel_fields = $rel_rs->es_searchable_fields;
-
-        push @{ $prefetch->{prefetch} }, $rel;
-
-        for my $rel_field (@rel_fields) {
-
-            push @{ $prefetch->{'+columns'} }, sprintf( '%s.%s', $rel, $rel_field );
-        }
-    }
+    my $prefetch = $self->es_build_prefetch;
 
     my $results = [ $self->search( undef, { select => \@fields, %$prefetch } )->all ];    # add prefetches if they are any
 
@@ -260,3 +249,5 @@ sub es_mapping {
 }
 
 1;
+## Please see file perltidy.ERR
+## Please see file perltidy.ERR
