@@ -94,6 +94,8 @@ sub es_drop_mapping {
 
     for my $source (@sources) {
 
+        next unless $source->source_info->{es_index_type} eq 'primary';
+
         my $rs = $self->resultset($source);
 
         next unless $rs->can('es_has_searchable') && $rs->es_has_searchable;
