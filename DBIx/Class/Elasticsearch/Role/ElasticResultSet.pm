@@ -54,7 +54,7 @@ sub es_build_prefetch_columns {
 
     my $flat = flatten( { paths => $wanted_relations_path } );
 
-    my $columns = [ $self->es_searchable_fields ];
+    my $columns = { map { $_ => $_ } $self->es_searchable_fields };
 
     for my $key ( keys %$flat ) {
 
@@ -62,12 +62,14 @@ sub es_build_prefetch_columns {
         my $rel_path = $key;
         $rel_path =~ s/paths:\d+\.?//;
 
+        my $last_relations = [];
+
         if ($rel_path) {    # is a relation path
 
             my @relations = split( /\./, $rel_path );
 
             # every relation in path
-            for my $rel ( @relations ) {
+            for my $rel (@relations) {
 
                 # rs is going deeper for each key
                 $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
@@ -76,8 +78,12 @@ sub es_build_prefetch_columns {
 
                 for my $rel_field (@$rel_fields) {
 
-                    push @$columns, sprintf( '%s.%s', $rel, $rel_field );
+                    my $column_name = sprintf( '%s.%s', $rel, $rel_field );
+                    my $column_identifier = scalar @$last_relations ? sprintf( '%s.%s', join( '.', @$last_relations ), $column_name ) : $column_name;    # NOTE sry, but i needed to...
+                    $columns->{$column_identifier} = $column_name;
                 }
+
+                push @$last_relations, $rel;
             }
 
             # last relation is a value not a key
@@ -88,7 +94,10 @@ sub es_build_prefetch_columns {
 
             for my $rel_field (@$rel_fields) {
 
-                push @$columns, sprintf( '%s.%s', $rel, $rel_field );
+                my $column_name = sprintf( '%s.%s', $rel, $rel_field );
+                my $column_identifier = sprintf( '%s.%s', join( '.', @$last_relations ), $column_name );
+                $columns->{$column_identifier} = $column_name;
+
             }
 
         } else {    # is a single relation
@@ -100,7 +109,8 @@ sub es_build_prefetch_columns {
 
             for my $rel_field (@$rel_fields) {
 
-                push @$columns, sprintf( '%s.%s', $rel, $rel_field );
+                my $column_name = sprintf( '%s.%s', $rel, $rel_field );
+                $columns->{$column_name} = $column_name;
             }
         }
     }
@@ -114,7 +124,8 @@ sub es_build_prefetch {
 
     return $self unless my $wanted_relations_path = $self->result_source->source_info->{es_wanted_relations_path};
 
-    return { prefetch => $wanted_relations_path, '+columns' => $self->es_build_prefetch_columns($wanted_relations_path) };
+    # join + collapse + "+columns" == prefetch, idea by <ilmari>
+    return { join => $wanted_relations_path, collapse => 1, '+columns' => $self->es_build_prefetch_columns($wanted_relations_path) };
 }
 
 sub batch_index {
@@ -128,7 +139,7 @@ sub batch_index {
     my @fields = $self->es_searchable_fields;
 
     my $denormalize_rels = $self->es_denormalize_rels;
-    my $prefetch = $self->es_build_prefetch;
+    my $prefetch         = $self->es_build_prefetch;
 
     my $results = [ $self->search( undef, { select => \@fields, %$prefetch } )->all ];    # add prefetches if they are any
 
