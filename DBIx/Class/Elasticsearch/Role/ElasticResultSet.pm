@@ -218,7 +218,7 @@ sub es_bulk {
     $bulk->flush;
 }
 
-sub es_mapping {
+sub es_build_field_mapping {
 
     my ($self) = @_;
 
@@ -254,6 +254,106 @@ sub es_mapping {
 
         $mapping->{$field} = $merged if $merged;
     }
+
+    return $mapping;
+}
+
+sub es_mapping {
+
+    my ($self) = @_;
+
+    use DDP;
+
+    my $wanted_relations_path = $self->result_source->source_info->{es_wanted_relations_path};
+    my $source                = $self->result_source;
+
+    return $self unless $source->source_info->{es_index_type} eq 'primary' && $wanted_relations_path;
+
+    my $mapping = {};
+
+    my $flat = flatten( { paths => $wanted_relations_path } );
+
+    for my $key ( keys %$flat ) {
+
+        my $rs       = $self;
+        my $rel_path = $key;
+        $rel_path =~ s/paths:\d+\.?//;
+
+        my $last_relations          = [];
+        my $temporary_mapping_store = {};
+
+        if ($rel_path) {    # is a relation path
+
+            my @relations = split( /\./, $rel_path );
+
+            push @relations, $flat->{$key};    # the last relation is an value and not included in the key
+            my $parent_class;
+
+            # every relation in path
+            for my $rel (@relations) {
+
+                # rs is going deeper for each key
+                $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
+
+                $temporary_mapping_store->{$rel} = { class => $rs->result_source->source_name, fields => $rs->es_build_field_mapping };
+                $temporary_mapping_store->{$rel}{parent_class} = $parent_class if $parent_class;
+
+                push @$last_relations, $rel;
+                $parent_class = $rs->result_source->source_name;
+            }
+
+        } else {    # is a single relation
+
+            my $rel = $flat->{$key};
+
+            $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
+
+            $temporary_mapping_store->{$rel} = $rs->es_build_field_mapping;
+
+            push @$last_relations, $rel;
+
+        }
+
+        my $build_mapping = {};
+
+        my $relation_type_translations = {
+            single => "object",
+            multi  => "nested",
+        };
+
+        my $parent = {  };
+
+        for my $rel (@$last_relations) {
+
+            my $row          = $temporary_mapping_store->{$rel};
+            my $class        = $row->{class};
+            my $fields       = $row->{fields};
+            my $parent_class = $row->{parent_class};
+
+            my $rs = $parent_class ? $source->schema->resultset($parent_class) : $self;
+
+            my $relation_mapping = {};
+
+            my $relation_info = $rs->result_source->relationship_info($rel);
+
+            $parent->{$rel} = $relation_mapping;
+
+            $relation_mapping->{type}       = $relation_type_translations->{ $relation_info->{attrs}{accessor} };
+            $relation_mapping->{properties} = $fields;
+
+            if ( $parent_class ) {
+
+                $parent->{$parent_class}{$rel} = $relation_mapping;
+            } else {
+
+                $mapping->{$rel} = $relation_mapping;
+            }
+
+        }
+
+    }
+
+    $mapping = { %$mapping, %{ $self->es_build_field_mapping } };
 
     return $mapping;
 
