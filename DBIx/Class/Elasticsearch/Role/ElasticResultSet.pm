@@ -249,5 +249,3 @@ sub es_mapping {
 }
 
 1;
-## Please see file perltidy.ERR
-## Please see file perltidy.ERR
