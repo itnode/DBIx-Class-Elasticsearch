@@ -3,6 +3,8 @@ package DBIx::Class::Elasticsearch::Role::ElasticSchema;
 use strict;
 use warnings;
 
+use Log::Any::Adapter qw(Stderr)
+
 use Moose::Role;
 
 has es_store => (
@@ -23,9 +25,13 @@ sub es {
 
     my $settings = $self->connect_elasticsearch;
 
-    use Log::Any::Adapter qw(Stderr) if $settings->{debug};
+    my $debug = {};
 
-    $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ), trace_to => 'Stderr', log_to => 'Stderr', cxn => $settings->{cxn} ) unless $self->es_store;
+    if ( $settings->{debug} ) {
+        $debug->{trace_to} = 'Stderr';
+    }
+
+    $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ), log_to => 'Stderr', cxn => $settings->{cxn}, %$debug ) unless $self->es_store;
 
     return $self->es_store;
 }
@@ -41,7 +47,7 @@ sub es_index_all {
 
     foreach my $source ( $self->sources ) {
 
-        my $rs = $self->resultset($source);
+        my $rs          = $self->resultset($source);
         my $source_info = $rs->result_source->source_info;
 
         next unless $source_info && $source_info->{es_index_type} eq 'primary';
@@ -71,7 +77,7 @@ sub es_create_mapping {
 
     for my $source (@sources) {
 
-        my $rs = $self->resultset($source);
+        my $rs          = $self->resultset($source);
         my $source_info = $rs->result_source->source_info;
 
         next unless $source_info && $source_info->{es_index_type} eq 'primary';
@@ -86,7 +92,6 @@ sub es_create_mapping {
     p $mappings;
 
     for my $key ( keys %$mappings ) {
-
 
         $self->es->indices->put_mapping(
             index => $self->es_index_name,
@@ -105,7 +110,7 @@ sub es_drop_mapping {
 
     for my $source (@sources) {
 
-        my $rs = $self->resultset($source);
+        my $rs          = $self->resultset($source);
         my $source_info = $rs->result_source->source_info;
 
         next unless $source_info && $source_info->{es_index_type} eq 'primary';
