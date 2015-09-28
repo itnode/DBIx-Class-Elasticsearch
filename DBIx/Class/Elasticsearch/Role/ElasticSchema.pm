@@ -3,7 +3,7 @@ package DBIx::Class::Elasticsearch::Role::ElasticSchema;
 use strict;
 use warnings;
 
-use Log::Any::Adapter qw(Stderr)
+use Log::Any::Adapter qw(Stderr);
 
 use Moose::Role;
 
@@ -23,15 +23,19 @@ sub es {
 
     my ($self) = @_;
 
-    my $settings = $self->connect_elasticsearch;
+    if ( !$self->es_store ) {
 
-    my $debug = {};
+        my $settings = $self->connect_elasticsearch;
 
-    if ( $settings->{debug} ) {
-        $debug->{trace_to} = 'Stderr';
+        my $debug = {};
+
+        if ( $settings->{debug} ) {
+            $debug->{trace_to} = 'Stderr';
+        }
+
+        $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ), log_to => 'Stderr', cxn => $settings->{cxn}, %$debug );
+
     }
-
-    $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ), log_to => 'Stderr', cxn => $settings->{cxn}, %$debug ) unless $self->es_store;
 
     return $self->es_store;
 }
