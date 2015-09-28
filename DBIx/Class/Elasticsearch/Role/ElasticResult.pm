@@ -5,7 +5,7 @@ use warnings;
 
 use Moose::Role;
 
-sub es_start_index {
+sub es_index {
     my $self = shift;
 
     return unless $self->es_has_searchable;
@@ -15,7 +15,7 @@ sub es_start_index {
 
     warn "Indexing...\n";
 
-    my $rs = $self->result_source->resultset;
+    my $rs       = $self->result_source->resultset;
     my $prefetch = $self->result_source->resultset->es_build_prefetch;
 
     my %columns = $self->get_columns;
@@ -29,7 +29,7 @@ sub es_start_index {
 
     my $body = [ $rs->all ];
 
-    return $self->es_index($body->[0]);
+    return $self->es_index( $body->[0] );
 }
 
 sub es_searchable_fields {
@@ -56,9 +56,9 @@ after 'insert' => sub {
     my $self = shift;
 
     return do {
-        if ($self->es_is_primary) {
+        if ( $self->es_is_primary ) {
             warn "Inserting ...";
-            $self->es_start_index;
+            $self->es_index;
         } else {
             $self;
         }
@@ -69,9 +69,9 @@ after 'update' => sub {
     my $self = shift;
 
     return do {
-        if ($self->es_is_primary) {
+        if ( $self->es_is_primary ) {
             warn "Updating ...";
-            $self->es_start_index;
+            $self->es_index;
         } else {
             $self;
         }
@@ -82,16 +82,17 @@ after 'delete' => sub {
     my $self = shift;
 
     return do {
-        if ($self->es_is_primary) {
+        if ( $self->es_is_primary ) {
             warn "Deleting...\n";
             $self->es_delete;
         } else {
+
             #$self;
         }
     };
 };
 
-sub es_index {
+sub es_index_transfer {
 
     my ( $self, $body ) = @_;
 

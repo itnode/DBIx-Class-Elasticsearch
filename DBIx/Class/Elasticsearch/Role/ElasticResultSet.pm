@@ -128,7 +128,19 @@ sub es_build_prefetch {
     return { join => $wanted_relations_path, collapse => 1, '+columns' => $self->es_build_prefetch_columns($wanted_relations_path) };
 }
 
-sub batch_index {
+sub es_index {
+
+    my $self = shift;
+
+    warn "for big resultsets you should use es_batch_index" if $self->count >= 10;
+
+    while ( my $row = $self->next ) {
+
+        $row->es_start_index;
+    }
+}
+
+sub es_batch_index {
     warn "Batch Indexing...\n";
     my $self = shift;
     my $batch_size = shift || 1000;
