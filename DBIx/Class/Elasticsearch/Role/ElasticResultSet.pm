@@ -262,7 +262,7 @@ sub es_is_primary {
 
     my $self = shift;
 
-    my $source                = $self->result_source;
+    my $source = $self->result_source;
 
     return unless $source->source_info && $source->source_info->{es_index_type} eq 'primary';
     return 1;
@@ -304,6 +304,10 @@ sub es_mapping {
                 # rs is going deeper for each key
                 $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
 
+                my $name = $rs->result_source->source_name;
+
+                die "resultset $name has no searchable fields" unless $rs->es_has_searchable;
+
                 $temporary_mapping_store->{$rel} = { class => $rs->result_source->source_name, fields => $rs->es_build_field_mapping };
                 $temporary_mapping_store->{$rel}{parent_rel}   = $parent_rel   if $parent_rel;
                 $temporary_mapping_store->{$rel}{parent_class} = $parent_class if $parent_class;
@@ -318,6 +322,9 @@ sub es_mapping {
             my $rel = $flat->{$key};
 
             $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
+
+            my $name = $rs->result_source->source_name;
+            die "resultset $name  has no searchable fields" unless $rs->es_has_searchable;
 
             $temporary_mapping_store->{$rel} = $rs->es_build_field_mapping;
 
