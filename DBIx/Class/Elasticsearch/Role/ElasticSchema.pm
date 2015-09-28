@@ -40,6 +40,12 @@ sub es_index_all {
     my $self = shift;
 
     foreach my $source ( $self->sources ) {
+
+        my $rs = $self->resultset($source);
+        my $source_info = $rs->result_source->source_info;
+
+        next unless $source_info && $source_info->{es_index_type} eq 'primary';
+
         my $klass = $self->class($source);
 
         if ( $self->resultset($source)->can("batch_index") ) {

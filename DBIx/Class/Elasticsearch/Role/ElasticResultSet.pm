@@ -138,14 +138,14 @@ sub batch_index {
 
     my @fields = $self->es_searchable_fields;
 
-    my $denormalize_rels = $self->es_denormalize_rels;
     my $prefetch         = $self->es_build_prefetch;
 
-    $self->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my $results = $self->search( undef, $prefetch );    # add prefetches
+    $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-    my $results = [ $self->search( undef, $prefetch )->all ];    # add prefetches
+    $results = [ $results->all ];;
 
-    my $count = $results->count;
+    my $count = scalar @$results;
 
     while ( defined( my $row = shift @$results ) ) {
         $rows++;
