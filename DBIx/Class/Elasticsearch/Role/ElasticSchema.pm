@@ -14,7 +14,7 @@ has connect_elasticsearch => (
     is       => 'rw',
     isa      => 'HashRef',
     required => 0,
-    default  => sub { host => "localhost", port => 9200 },
+    default  => sub { host => "localhost", port => 9200, cxn => undef },
 );
 
 sub es {
@@ -25,7 +25,7 @@ sub es {
 
     #use Log::Any::Adapter qw(Stderr);
 
-    $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ), trace_to => 'Stderr', log_to => 'Stderr' ) unless $self->es_store;
+    $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ), trace_to => 'Stderr', log_to => 'Stderr', cxn => $settings->{cxn} ) unless $self->es_store;
 
     return $self->es_store;
 }
