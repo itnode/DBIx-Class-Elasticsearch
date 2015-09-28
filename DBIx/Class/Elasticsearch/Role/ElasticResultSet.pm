@@ -138,12 +138,12 @@ sub batch_index {
 
     my @fields = $self->es_searchable_fields;
 
-    my $prefetch         = $self->es_build_prefetch;
+    my $prefetch = $self->es_build_prefetch;
 
     my $results = $self->search( undef, $prefetch );    # add prefetches
     $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-    $results = [ $results->all ];;
+    $results = [ $results->all ];
 
     my $count = scalar @$results;
 
@@ -207,7 +207,7 @@ sub es_bulk {
 
         my $params = {
             index  => $schema->es_index_name,
-            id     => sprintf( "%s_%s", $type, $row->{es_id} ),
+            id     => $row->{es_id},
             type   => $type,
             source => $row
         };
@@ -258,6 +258,16 @@ sub es_build_field_mapping {
     return $mapping;
 }
 
+sub es_is_primary {
+
+    my $self = shift;
+
+    my $source                = $self->result_source;
+
+    return unless $source->source_info && $source->source_info->{es_index_type} eq 'primary';
+    return 1;
+}
+
 sub es_mapping {
 
     my ($self) = @_;
@@ -265,7 +275,7 @@ sub es_mapping {
     my $wanted_relations_path = $self->result_source->source_info->{es_wanted_relations_path};
     my $source                = $self->result_source;
 
-    return $self unless $source->source_info->{es_index_type} eq 'primary' && $wanted_relations_path;
+    return $self unless $self->es_is_primary;
 
     my $mapping = {};
 
