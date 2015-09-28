@@ -142,7 +142,9 @@ sub es_index {
 
 sub es_batch_index {
     warn "Batch Indexing...\n";
+
     my $self = shift;
+
     my $batch_size = shift || 1000;
     my ( $data, $rows ) = ( [], 0 );
 

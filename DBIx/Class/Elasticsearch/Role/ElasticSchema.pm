@@ -3,7 +3,7 @@ package DBIx::Class::Elasticsearch::Role::ElasticSchema;
 use strict;
 use warnings;
 
-use Log::Any::Adapter qw(Stderr);
+#use Log::Any::Adapter qw(Stderr);
 
 use Moose::Role;
 
@@ -63,6 +63,7 @@ sub es_index_all {
             $self->resultset($source)->es_batch_index;
         }
     }
+
 }
 
 sub es_create_index {
@@ -91,9 +92,6 @@ sub es_create_mapping {
         my $name = $rs->result_source->name;
         $mappings->{$name} = $rs->es_mapping;
     }
-
-    use DDP;
-    p $mappings;
 
     for my $key ( keys %$mappings ) {
 
