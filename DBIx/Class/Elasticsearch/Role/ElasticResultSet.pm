@@ -136,7 +136,7 @@ sub es_index {
 
     while ( my $row = $self->next ) {
 
-        $row->es_start_index;
+        $row->es_index;
     }
 }
 
