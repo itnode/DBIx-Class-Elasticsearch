@@ -14,7 +14,7 @@ has connect_elasticsearch => (
     is       => 'rw',
     isa      => 'HashRef',
     required => 0,
-    default  => sub { host => "localhost", port => 9200, cxn => undef },
+    default  => sub { host => "localhost", port => 9200, cxn => undef, debug => 0 },
 );
 
 sub es {
@@ -23,7 +23,7 @@ sub es {
 
     my $settings = $self->connect_elasticsearch;
 
-    #use Log::Any::Adapter qw(Stderr);
+    use Log::Any::Adapter qw(Stderr) if $settings->{debug};
 
     $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ), trace_to => 'Stderr', log_to => 'Stderr', cxn => $settings->{cxn} ) unless $self->es_store;
 
@@ -48,9 +48,9 @@ sub es_index_all {
 
         my $klass = $self->class($source);
 
-        if ( $self->resultset($source)->can("batch_index") ) {
+        if ( $self->resultset($source)->can("es_batch_index") ) {
             warn "Indexing source $source\n";
-            $self->resultset($source)->batch_index;
+            $self->resultset($source)->es_batch_index;
         }
     }
 }
