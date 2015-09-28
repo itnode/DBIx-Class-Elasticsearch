@@ -326,7 +326,7 @@ sub es_mapping {
             my $name = $rs->result_source->source_name;
             die "resultset $name  has no searchable fields" unless $rs->es_has_searchable;
 
-            $temporary_mapping_store->{$rel} = $rs->es_build_field_mapping;
+            $temporary_mapping_store->{$rel} = { class => $rs->result_source->source_name, fields => $rs->es_build_field_mapping };
 
             push @$last_relations, $rel;
 

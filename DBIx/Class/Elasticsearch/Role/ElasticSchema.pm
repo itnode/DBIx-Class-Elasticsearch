@@ -82,7 +82,11 @@ sub es_create_mapping {
         $mappings->{$name} = $rs->es_mapping;
     }
 
+    use DDP;
+    p $mappings;
+
     for my $key ( keys %$mappings ) {
+
 
         $self->es->indices->put_mapping(
             index => $self->es_index_name,
