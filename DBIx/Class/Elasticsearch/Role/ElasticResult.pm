@@ -15,12 +15,21 @@ sub es_start_index {
 
     warn "Indexing...\n";
 
-    my @fields = $self->es_searchable_fields;
-    my %body = map { $_ => $self->{ '_column_data' }{ $_ } } @fields;
+    my $rs = $self->result_source->resultset;
+    my $prefetch = $self->result_source->resultset->es_build_prefetch;
 
-    $body{es_id} = $self->es_id(\%body);
+    my %columns = $self->get_columns;
 
-    return $self->es_index(\%body);
+    my $me = $rs->current_source_alias;
+
+    my $query = { map { sprintf( '%s.%s', $me, $_ ) => $columns{$_} } $self->result_source->primary_columns };
+
+    $rs = $rs->search_rs( $query, $prefetch );
+    $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+
+    my $body = [ $rs->all ];
+
+    return $self->es_index($body->[0]);
 }
 
 sub es_searchable_fields {
