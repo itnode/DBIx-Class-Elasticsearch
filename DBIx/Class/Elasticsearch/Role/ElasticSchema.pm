@@ -65,9 +65,10 @@ sub es_create_mapping {
 
     for my $source (@sources) {
 
-        next unless $source->source_info->{es_index_type} eq 'primary';
-
         my $rs = $self->resultset($source);
+        my $source_info = $rs->result_source->source_info;
+
+        next unless $source_info && $source_info->{es_index_type} eq 'primary';
 
         next unless $rs->can('es_has_searchable') && $rs->es_has_searchable;
 
@@ -94,11 +95,14 @@ sub es_drop_mapping {
 
     for my $source (@sources) {
 
-        next unless $source->source_info->{es_index_type} eq 'primary';
-
         my $rs = $self->resultset($source);
+        my $source_info = $rs->result_source->source_info;
+
+        next unless $source_info && $source_info->{es_index_type} eq 'primary';
 
         next unless $rs->can('es_has_searchable') && $rs->es_has_searchable;
+
+        warn "delete mapping $source";
 
         $self->es->indices->delete_mapping(
             index  => $self->es_index_name,

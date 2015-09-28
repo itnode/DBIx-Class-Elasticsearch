@@ -262,8 +262,6 @@ sub es_mapping {
 
     my ($self) = @_;
 
-    use DDP;
-
     my $wanted_relations_path = $self->result_source->source_info->{es_wanted_relations_path};
     my $source                = $self->result_source;
 
@@ -287,6 +285,7 @@ sub es_mapping {
             my @relations = split( /\./, $rel_path );
 
             push @relations, $flat->{$key};    # the last relation is an value and not included in the key
+            my $parent_rel;
             my $parent_class;
 
             # every relation in path
@@ -296,9 +295,11 @@ sub es_mapping {
                 $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
 
                 $temporary_mapping_store->{$rel} = { class => $rs->result_source->source_name, fields => $rs->es_build_field_mapping };
+                $temporary_mapping_store->{$rel}{parent_rel}   = $parent_rel   if $parent_rel;
                 $temporary_mapping_store->{$rel}{parent_class} = $parent_class if $parent_class;
 
                 push @$last_relations, $rel;
+                $parent_rel   = $rel;
                 $parent_class = $rs->result_source->source_name;
             }
 
@@ -321,13 +322,14 @@ sub es_mapping {
             multi  => "nested",
         };
 
-        my $parent = {  };
+        my $parent = {};
 
         for my $rel (@$last_relations) {
 
             my $row          = $temporary_mapping_store->{$rel};
             my $class        = $row->{class};
             my $fields       = $row->{fields};
+            my $parent_rel   = $row->{parent_rel};
             my $parent_class = $row->{parent_class};
 
             my $rs = $parent_class ? $source->schema->resultset($parent_class) : $self;
@@ -341,9 +343,9 @@ sub es_mapping {
             $relation_mapping->{type}       = $relation_type_translations->{ $relation_info->{attrs}{accessor} };
             $relation_mapping->{properties} = $fields;
 
-            if ( $parent_class ) {
+            if ($parent_rel) {
 
-                $parent->{$parent_class}{$rel} = $relation_mapping;
+                $parent->{$parent_rel}{properties}{$rel} = $relation_mapping;
             } else {
 
                 $mapping->{$rel} = $relation_mapping;
