@@ -3,6 +3,7 @@ package DBIx::Class::Elasticsearch::Role::ElasticSchema;
 use strict;
 use warnings;
 
+use Search::Elasticsearch;
 #use Log::Any::Adapter qw(Stderr);
 
 use Moose::Role;
