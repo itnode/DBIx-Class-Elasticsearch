@@ -71,6 +71,7 @@ sub es_build_prefetch_columns {
             # every relation in path
             for my $rel (@relations) {
 
+                $rel =~ s/:\d//;
                 # rs is going deeper for each key
                 $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
 
@@ -314,6 +315,8 @@ sub es_mapping {
 
             # every relation in path
             for my $rel (@relations) {
+
+                $rel =~ s/:\d//;
 
                 # rs is going deeper for each key
                 $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
