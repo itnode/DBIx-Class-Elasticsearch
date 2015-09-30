@@ -54,9 +54,6 @@ sub es_build_prefetch_columns {
 
     my $flat = flatten( { paths => $wanted_relations_path } );
 
-    use DDP;
-    p $flat;
-
     my $known_relations = {};
 
     my $columns = { map { $_ => $_ } $self->es_searchable_fields };
@@ -157,9 +154,6 @@ sub es_batch_index {
 
     my $results = $self->search( undef, $prefetch );    # add prefetches
 
-    use DDP;
-    p $results->as_query;
-
     $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
     my $counter = 0;
@@ -179,7 +173,7 @@ sub es_batch_index {
     }
 
     if ( scalar @$data ) {
-        warn "Batched ". scalar @$data . "Rows";
+        warn "Batched ". scalar @$data . " rows\n";
         $self->es_bulk($data) if scalar @$data;
     }
 
