@@ -54,9 +54,14 @@ sub es_build_prefetch_columns {
 
     my $flat = flatten( { paths => $wanted_relations_path } );
 
+    use DDP;
+    p $flat;
+
+    my $known_relations = {};
+
     my $columns = { map { $_ => $_ } $self->es_searchable_fields };
 
-    for my $key ( keys %$flat ) {
+    for my $key ( sort keys %$flat ) {
 
         my $rs       = $self;
         my $rel_path = $key;
@@ -67,15 +72,24 @@ sub es_build_prefetch_columns {
         if ($rel_path) {    # is a relation path
 
             my @relations = split( /\./, $rel_path );
+            push @relations, $flat->{$key};
+            my $size = scalar @relations;
+
+            my $i = 1;
 
             # every relation in path
             for my $rel (@relations) {
 
                 $rel =~ s/:\d//;
+
+                $known_relations->{$rel}++;
+
                 # rs is going deeper for each key
                 $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
 
                 my $rel_fields = [ $rs->es_searchable_fields ];
+
+                $rel = sprintf( '%s_%d', $rel, $known_relations->{$rel} ) if $known_relations->{$rel} > 1 && $i < $size;
 
                 for my $rel_field (@$rel_fields) {
 
@@ -85,20 +99,6 @@ sub es_build_prefetch_columns {
                 }
 
                 push @$last_relations, $rel;
-            }
-
-            # last relation is a value not a key
-            my $rel = $flat->{$key};
-
-            $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
-            my $rel_fields = [ $rs->es_searchable_fields ];
-
-            for my $rel_field (@$rel_fields) {
-
-                my $column_name = sprintf( '%s.%s', $rel, $rel_field );
-                my $column_identifier = sprintf( '%s.%s', join( '.', @$last_relations ), $column_name );
-                $columns->{$column_identifier} = $column_name;
-
             }
 
         } else {    # is a single relation
@@ -147,7 +147,7 @@ sub es_batch_index {
     my $self = shift;
 
     my $batch_size = shift || 1000;
-    my ( $data, $rows ) = ( [], 0 );
+    my $data = [];
 
     return unless $self->es_has_searchable;
 
@@ -156,25 +156,31 @@ sub es_batch_index {
     my $prefetch = $self->es_build_prefetch;
 
     my $results = $self->search( undef, $prefetch );    # add prefetches
+
+    use DDP;
+    p $results->as_query;
+
     $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-    $results = [ $results->all ];
+    my $counter = 0;
 
-    my $count = scalar @$results;
-
-    while ( defined( my $row = shift @$results ) ) {
-        $rows++;
+    while ( my $row = $results->next ) {
+        $counter++;
 
         $row->{es_id} = $self->es_id($row);
 
         push( @$data, $row );
-        if ( $rows == $batch_size || $rows == $count ) {
-            warn "Batched $rows rows\n";
+        if ( $counter == $batch_size ) {
+            warn "Batched $counter rows\n";
             $self->es_bulk($data);
 
-            $count = $count - $rows;
-            ( $data, $rows ) = ( [], 0 );
+            ( $data, $counter ) = ( [], 0 );
         }
+    }
+
+    if ( scalar @$data ) {
+        warn "Batched ". scalar @$data . "Rows";
+        $self->es_bulk($data) if scalar @$data;
     }
 
     1;
