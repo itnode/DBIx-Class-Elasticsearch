@@ -98,7 +98,7 @@ sub es_create_mapping {
         $self->es->indices->put_mapping(
             index => $self->es_index_name,
             type  => $key,
-            body  => { $key => { properties => $mappings->{$key} } },
+            body  => { $key => { properties => $mappings->{$key}, dynamic => 0 } },
         );
     }
 }

@@ -126,7 +126,7 @@ sub es_build_prefetch {
     return $self unless my $wanted_relations_path = $self->result_source->source_info->{es_wanted_relations_path};
 
     # join + collapse + "+columns" == prefetch, idea by <ilmari>
-    return { join => $wanted_relations_path, collapse => 1, '+columns' => $self->es_build_prefetch_columns($wanted_relations_path) };
+    return { prefetch => $wanted_relations_path };
 }
 
 sub es_index {
