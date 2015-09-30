@@ -126,6 +126,14 @@ sub es_build_prefetch {
     return { prefetch => $wanted_relations_path };
 }
 
+sub es_fetch_with_nested_relations {
+
+    my $self = shift;
+
+    return $self->search( undef, $self->es_build_prefetch );
+
+}
+
 sub es_index {
 
     my $self = shift;
