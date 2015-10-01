@@ -48,10 +48,10 @@ sub es {
 
 sub es_dispatch {
 
-    my $self = $shift;
+    my $self = shift;
 
     my $dispatcher = $self->dispatcher;
-    my $registered_elastic_rs = $self->
+    my $registered_elastic_rs = $self->dispatcher;
 }
 
 sub es_index_name {
