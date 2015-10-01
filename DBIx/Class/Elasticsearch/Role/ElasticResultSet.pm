@@ -291,7 +291,7 @@ sub es_mapping {
 
     my ($self) = @_;
 
-    my $wanted_relations_path = $self->result_source->source_info->{es_nested_objects_path};
+    my $wanted_relations_path = $self->result_source->source_info->{es_nested_object_paths};
     my $source                = $self->result_source;
 
     return $self unless $self->es_is_primary;
