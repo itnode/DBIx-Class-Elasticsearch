@@ -24,6 +24,16 @@ sub es_is_parent {
     return 1 if scalar @{ shift->result_source->source_info->{es_child_objects} };
 }
 
+sub es_parents {
+
+    return shift->result_source->source_info->{es_parent_objects};
+}
+
+sub es_childs {
+
+    return shift->result_source->source_info->{es_child_objects};
+}
+
 sub es_searchable_fields {
     my $self = shift;
 
