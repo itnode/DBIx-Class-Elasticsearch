@@ -95,10 +95,12 @@ sub es_create_mapping {
 
     for my $key ( keys %$mappings ) {
 
+        my $parent = $mappings->{$key}{_parent} ? { _parent => delete $mappings->{$key}{"_parent"} } : {};
+
         $self->es->indices->put_mapping(
             index => $self->es_index_name,
             type  => $key,
-            body  => { $key => { properties => $mappings->{$key}, dynamic => 0 } },
+            body  => { $key => { properties => $mappings->{$key}, dynamic => 0, %$parent } },
         );
     }
 }

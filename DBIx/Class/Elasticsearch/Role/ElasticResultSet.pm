@@ -16,7 +16,7 @@ sub es_has_searchable {
 
 sub es_is_child {
 
-    return 1 if scalar @{ shift->result_source->source_info->{es_parent_objects} };
+    return 1 if shift->result_source->source_info->{es_parent_object};
 }
 
 sub es_is_parent {
@@ -24,9 +24,9 @@ sub es_is_parent {
     return 1 if scalar @{ shift->result_source->source_info->{es_child_objects} };
 }
 
-sub es_parents {
+sub es_parent {
 
-    return shift->result_source->source_info->{es_parent_objects};
+    return shift->result_source->source_info->{es_parent_object};
 }
 
 sub es_childs {
@@ -116,7 +116,7 @@ sub es_build_prefetch {
 
     my ($self) = @_;
 
-    return $self unless my $wanted_relations_path = $self->result_source->source_info->{es_wanted_relations_path};
+    return $self unless my $wanted_relations_path = $self->result_source->source_info->{es_nested_objects_path};
 
     # join + collapse + "+columns" == prefetch, idea by <ilmari>
     return { prefetch => $wanted_relations_path };
@@ -177,7 +177,7 @@ sub es_batch_index {
     }
 
     if ( scalar @$data ) {
-        warn "Batched ". scalar @$data . " rows\n";
+        warn "Batched " . scalar @$data . " rows\n";
         $self->es_bulk($data) if scalar @$data;
     }
 
@@ -291,102 +291,105 @@ sub es_mapping {
 
     my ($self) = @_;
 
-    my $wanted_relations_path = $self->result_source->source_info->{es_wanted_relations_path};
+    my $wanted_relations_path = $self->result_source->source_info->{es_nested_objects_path};
     my $source                = $self->result_source;
 
     return $self unless $self->es_is_primary;
 
     my $mapping = {};
 
-    my $flat = flatten( { paths => $wanted_relations_path } );
+    if ($wanted_relations_path) {
+        my $flat = flatten( { paths => $wanted_relations_path } );
 
-    for my $key ( keys %$flat ) {
+        for my $key ( keys %$flat ) {
 
-        my $rs       = $self;
-        my $rel_path = $key;
-        $rel_path =~ s/paths:\d+\.?//;
+            my $rs       = $self;
+            my $rel_path = $key;
+            $rel_path =~ s/paths:\d+\.?//;
 
-        my $last_relations          = [];
-        my $temporary_mapping_store = {};
+            my $last_relations          = [];
+            my $temporary_mapping_store = {};
 
-        if ($rel_path) {    # is a relation path
+            if ($rel_path) {    # is a relation path
 
-            my @relations = split( /\./, $rel_path );
+                my @relations = split( /\./, $rel_path );
 
-            push @relations, $flat->{$key};    # the last relation is an value and not included in the key
-            my $parent_rel;
-            my $parent_class;
+                push @relations, $flat->{$key};    # the last relation is an value and not included in the key
+                my $parent_rel;
+                my $parent_class;
 
-            # every relation in path
-            for my $rel (@relations) {
+                # every relation in path
+                for my $rel (@relations) {
 
-                $rel =~ s/:\d//;
+                    $rel =~ s/:\d//;
 
-                # rs is going deeper for each key
+                    # rs is going deeper for each key
+                    $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
+
+                    my $name = $rs->result_source->source_name;
+
+                    die "resultset $name has no searchable fields" unless $rs->es_has_searchable;
+
+                    $temporary_mapping_store->{$rel} = { class => $rs->result_source->source_name, fields => $rs->es_build_field_mapping };
+                    $temporary_mapping_store->{$rel}{parent_rel}   = $parent_rel   if $parent_rel;
+                    $temporary_mapping_store->{$rel}{parent_class} = $parent_class if $parent_class;
+
+                    push @$last_relations, $rel;
+                    $parent_rel   = $rel;
+                    $parent_class = $rs->result_source->source_name;
+                }
+
+            } else {    # is a single relation
+
+                my $rel = $flat->{$key};
+
                 $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
 
                 my $name = $rs->result_source->source_name;
-
-                die "resultset $name has no searchable fields" unless $rs->es_has_searchable;
+                die "resultset $name  has no searchable fields" unless $rs->es_has_searchable;
 
                 $temporary_mapping_store->{$rel} = { class => $rs->result_source->source_name, fields => $rs->es_build_field_mapping };
-                $temporary_mapping_store->{$rel}{parent_rel}   = $parent_rel   if $parent_rel;
-                $temporary_mapping_store->{$rel}{parent_class} = $parent_class if $parent_class;
 
                 push @$last_relations, $rel;
-                $parent_rel   = $rel;
-                $parent_class = $rs->result_source->source_name;
+
             }
 
-        } else {    # is a single relation
+            my $build_mapping = {};
 
-            my $rel = $flat->{$key};
+            my $relation_type_translations = {
+                single => "object",
+                multi  => "nested",
+            };
 
-            $rs = $self->result_source->schema->resultset( $rs->result_source->related_class($rel) );
+            my $parent = {};
 
-            my $name = $rs->result_source->source_name;
-            die "resultset $name  has no searchable fields" unless $rs->es_has_searchable;
+            for my $rel (@$last_relations) {
 
-            $temporary_mapping_store->{$rel} = { class => $rs->result_source->source_name, fields => $rs->es_build_field_mapping };
+                my $row          = $temporary_mapping_store->{$rel};
+                my $class        = $row->{class};
+                my $fields       = $row->{fields};
+                my $parent_rel   = $row->{parent_rel};
+                my $parent_class = $row->{parent_class};
 
-            push @$last_relations, $rel;
+                my $rs = $parent_class ? $source->schema->resultset($parent_class) : $self;
 
-        }
+                my $relation_mapping = {};
 
-        my $build_mapping = {};
+                my $relation_info = $rs->result_source->relationship_info($rel);
 
-        my $relation_type_translations = {
-            single => "object",
-            multi  => "nested",
-        };
+                $parent->{$rel} = $relation_mapping;
 
-        my $parent = {};
+                $relation_mapping->{type}       = $relation_type_translations->{ $relation_info->{attrs}{accessor} };
+                $relation_mapping->{properties} = $fields;
 
-        for my $rel (@$last_relations) {
+                if ($parent_rel) {
 
-            my $row          = $temporary_mapping_store->{$rel};
-            my $class        = $row->{class};
-            my $fields       = $row->{fields};
-            my $parent_rel   = $row->{parent_rel};
-            my $parent_class = $row->{parent_class};
+                    $parent->{$parent_rel}{properties}{$rel} = $relation_mapping;
+                } else {
 
-            my $rs = $parent_class ? $source->schema->resultset($parent_class) : $self;
+                    $mapping->{$rel} = $relation_mapping;
+                }
 
-            my $relation_mapping = {};
-
-            my $relation_info = $rs->result_source->relationship_info($rel);
-
-            $parent->{$rel} = $relation_mapping;
-
-            $relation_mapping->{type}       = $relation_type_translations->{ $relation_info->{attrs}{accessor} };
-            $relation_mapping->{properties} = $fields;
-
-            if ($parent_rel) {
-
-                $parent->{$parent_rel}{properties}{$rel} = $relation_mapping;
-            } else {
-
-                $mapping->{$rel} = $relation_mapping;
             }
 
         }
@@ -394,6 +397,9 @@ sub es_mapping {
     }
 
     $mapping = { %$mapping, %{ $self->es_build_field_mapping } };
+
+    # add parent if available
+    $mapping->{"_parent"}{type} = $self->es_parent if $self->es_is_child;
 
     return $mapping;
 
