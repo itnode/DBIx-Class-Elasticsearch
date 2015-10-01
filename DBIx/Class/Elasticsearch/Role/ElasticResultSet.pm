@@ -8,6 +8,7 @@ use Hash::Flatten qw(:all);
 
 use Moose::Role;
 
+=head2
 sub es_has_searchable {
     my $self = shift;
 
@@ -129,7 +130,7 @@ sub es_fetch_with_nested_relations {
     return $self->search( undef, $self->es_build_prefetch );
 
 }
-
+=cut
 sub es_index {
 
     my $self = shift;
@@ -243,7 +244,7 @@ sub es_bulk {
 
     $bulk->flush;
 }
-
+=head2
 sub es_build_field_mapping {
 
     my ($self) = @_;
@@ -411,5 +412,5 @@ sub es_mapping {
     return $mapping;
 
 }
-
+=cut
 1;
