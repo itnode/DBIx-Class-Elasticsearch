@@ -46,7 +46,7 @@ sub es {
     return $self->es_store;
 }
 
-sub dispatch {
+sub es_dispatch {
 
     my $self = $shift;
 
