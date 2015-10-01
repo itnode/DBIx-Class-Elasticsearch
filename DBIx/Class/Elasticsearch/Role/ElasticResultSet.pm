@@ -14,28 +14,14 @@ sub es_has_searchable {
     return scalar $self->es_searchable_fields;
 }
 
-sub es_has_denormalized_relations {
+sub es_is_child {
 
-    my $self = shift;
-
-    return scalar @{ $self->es_denormalize_relations };
+    return 1 if scalar @{ shift->result_source->source_info->{es_parent_objects} };
 }
 
-sub es_denormalize_relations {
+sub es_is_parent {
 
-    my $self = shift;
-
-    my $class = $self->result_class;
-    my @rels  = $class->relationships;
-
-    my $denormalized_rels = [];
-
-    for my $rel (@rels) {
-
-        push @$denormalized_rels, $rel if $class->relationship_info($rel)->{es_denormalize};
-    }
-
-    return $denormalized_rels;
+    return 1 if scalar @{ shift->result_source->source_info->{es_child_objects} };
 }
 
 sub es_searchable_fields {
