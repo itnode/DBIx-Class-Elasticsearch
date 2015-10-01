@@ -19,6 +19,12 @@ has connect_elasticsearch => (
     default  => sub { host => "localhost", port => 9200, cxn => undef, debug => 0 },
 );
 
+has registered_elastic_rs => (
+    is => 'rw',
+    isa => 'ArrayRef',
+    required => 0,
+);
+
 sub es {
 
     my ($self) = @_;
@@ -38,6 +44,14 @@ sub es {
     }
 
     return $self->es_store;
+}
+
+sub dispatch {
+
+    my $self = $shift;
+
+    my $dispatcher = $self->dispatcher;
+    my $registered_elastic_rs = $self->
 }
 
 sub es_index_name {

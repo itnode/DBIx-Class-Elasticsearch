@@ -52,6 +52,16 @@ sub es_is_primary {
     return shift->result_source->resultset->es_is_primary;
 }
 
+sub es_is_child {
+
+    return shift->result_source->resultset->es_is_child;
+}
+
+sub es_parent {
+
+    return shift->result_source->resultset->es_parent;
+}
+
 after 'insert' => sub {
     my $self = shift;
 
@@ -98,14 +108,20 @@ sub es_index_transfer {
 
     my $type = $self->result_source->name;
 
+    my $parent = {};
+    if ( $self->es_is_child ) {
+
+        $parent = { parent => $self->es_parent };
+    }
     $self->es->index(
-        index => $self->result_source->schema->es_index_name,
-        id    => $body->{es_id},
-        type  => $type,
-        body  => $body
-
+        {
+            index => $self->result_source->schema->es_index_name,
+            id    => $body->{es_id},
+            type  => $type,
+            body  => $body,
+            %$parent,
+        }
     );
-
 }
 
 sub es {

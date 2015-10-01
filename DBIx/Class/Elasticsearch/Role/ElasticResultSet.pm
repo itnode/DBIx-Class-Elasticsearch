@@ -224,11 +224,18 @@ sub es_bulk {
             $row->{$key} = $row_raw->{$key} if $row_raw->{$key};
         }
 
+        my $parent = {};
+        if ( $self->es_is_child ) {
+
+            $parent = { parent => $self->es_parent };
+        }
+
         my $params = {
             index  => $schema->es_index_name,
             id     => $row->{es_id},
             type   => $type,
-            source => $row
+            source => $row,
+            %$parent,
         };
 
         $bulk->index($params);
