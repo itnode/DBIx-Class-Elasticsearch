@@ -19,12 +19,6 @@ has connect_elasticsearch => (
     default  => sub { host => "localhost", port => 9200, cxn => undef, debug => 0 },
 );
 
-has registered_elastic_rs => (
-    is => 'rw',
-    isa => 'ArrayRef',
-    required => 0,
-);
-
 sub es {
 
     my ($self) = @_;
@@ -87,6 +81,7 @@ sub es_create_index {
     $self->es->indices->create( index => $self->es_index_name, );
 }
 
+=head2
 sub es_create_mapping {
 
     my $self = shift;
@@ -117,6 +112,33 @@ sub es_create_mapping {
             body  => { $key => { properties => $mappings->{$key}, dynamic => 0, %$parent } },
         );
     }
+}
+=cut
+
+sub es_collect_mappings {
+
+    my ( $self ) = @_;
+
+    my $registered_elastic_rs = $self->connect_elasticsearch->{registered_elastic_rs};
+
+    foreach my $rs (@$registered_elastic_rs) {
+
+        eval "use $rs";
+
+        warn $@ if $@;
+
+        $self->es->indices->create( index => $rs->type );
+
+        my $mapping = $rs->mapping;
+
+        $self->es->indices->put_mapping(
+            index => $rs->type,
+            type => $rs->type,
+            body => $rs->mapping,
+
+        );
+    }
+
 }
 
 sub es_drop_mapping {
