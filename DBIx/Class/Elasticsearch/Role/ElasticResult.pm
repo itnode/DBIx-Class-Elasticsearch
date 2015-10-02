@@ -25,7 +25,31 @@ sub es_index {
 
         warn $@ if $@;
 
-        $rs->($dbix_rs);
+        $rs->es_index($dbix_rs);
+    }
+}
+
+sub es_delete {
+
+    my ( $self ) = @_;
+
+    my $schema = $self->result_source->schema;
+    my $class  = $self->result_source->source_name;
+
+    my $elastic_rs  = $schema->dispatcher->{$class};
+    my $dbix_rs     = $self->result_source->resultset;
+    my $me          = $dbix_rs->current_source_alias;
+    my $dbix_params = { map { $me . "." . $_ => $self->$_ } $self->primary_columns };
+
+    $dbix_rs = $self->result_source->resultset->search_rs($dbix_params);
+
+    for my $rs (@$elastic_rs) {
+
+        eval "use $rs";
+
+        warn $@ if $@;
+
+        $rs->es_delete($dbix_rs);
     }
 }
 
@@ -34,7 +58,7 @@ after 'insert' => sub {
 
     return do {
 
-        warn "Inserting ...";
+        warn "Inserting ...\n";
         $self->es_index;
     };
 };
@@ -44,12 +68,12 @@ after 'update' => sub {
 
     return do {
 
-        warn "Updating ...";
+        warn "Updating ...\n";
         $self->es_index;
     };
 };
 
-after 'delete' => sub {
+before 'delete' => sub {
     my $self = shift;
 
     return do {
@@ -76,25 +100,6 @@ sub es_index_transfer {
 sub es {
 
     return shift->result_source->schema->es;
-}
-
-sub schema {
-
-}
-
-sub es_delete {
-
-    my ( $self, $entry ) = @_;
-
-    my $type = $self->result_source->name;
-
-    my %columns;
-
-    $self->es->delete(
-        id    => $self->es_id( \%columns ),
-        type  => $type,
-        index => $self->result_source->schema->es_index_name,
-    );
 }
 
 1;

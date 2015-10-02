@@ -33,6 +33,27 @@ sub es_index {
 
 }
 
+sub es_delete {
+
+    my $self    = shift;
+    my $dbix_rs = shift;
+
+    my $results = $self->index_rs($dbix_rs);
+
+    $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
+
+    while ( my $row = $results->next ) {
+
+        my $id = $self->es_id( $row, $results );
+
+        $self->es->delete(
+            id    => $id,
+            type  => $self->type,
+            index => $self->type,
+        );
+    }
+}
+
 sub es_batch_index {
     warn "Batch Indexing...\n";
 
