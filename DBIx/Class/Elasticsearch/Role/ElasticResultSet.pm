@@ -75,8 +75,7 @@ sub es_batch_index {
     my $batch_size = shift || 1000;
     my $data = [];
 
-    my $dbix_rs = $self->dbix_rs;
-    my $results = $self->index_rs($dbix_rs);    # add prefetches
+    my $results = $self->index_rs;    # add prefetches
 
     $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
@@ -85,7 +84,7 @@ sub es_batch_index {
     while ( my $row = $results->next ) {
         $counter++;
 
-        $row->{es_id} = $self->es_id( $row, $dbix_rs );
+        $row->{es_id} = $self->es_id( $row, $results );
 
         push( @$data, $row );
         if ( $counter == $batch_size ) {
