@@ -25,7 +25,23 @@ sub es_index {
 
         warn $@ if $@;
 
-        $rs->es_index($dbix_rs);
+        if ( $rs->es_is_primary ) {
+
+            $rs->es_index($dbix_rs);
+
+        } elsif ( $rs->es_is_nested ) {
+
+            my $higher_rs = $dbix_rs;
+
+            while ( !$higher_rs->es_is_primary ) {
+
+                my $tmp_class = $higher_rs->result_source->source_name;
+                my $rel = $higher_rs->relation_dispatcher->{nested}{$tmp_class};
+                $higher_rs = $higher_rs->search_related( $rel, {} );
+            }
+
+            $rs->es_index->($dbix_rs);
+        }
     }
 }
 
