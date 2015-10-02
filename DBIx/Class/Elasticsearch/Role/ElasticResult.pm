@@ -31,7 +31,7 @@ sub es_index {
 
 sub es_delete {
 
-    my ( $self ) = @_;
+    my ($self) = @_;
 
     my $schema = $self->result_source->schema;
     my $class  = $self->result_source->source_name;
@@ -56,31 +56,22 @@ sub es_delete {
 after 'insert' => sub {
     my $self = shift;
 
-    return do {
-
-        warn "Inserting ...\n";
-        $self->es_index;
-    };
+    warn "Inserting ...\n";
+    $self->es_index;
 };
 
 after 'update' => sub {
     my $self = shift;
 
-    return do {
-
-        warn "Updating ...\n";
-        $self->es_index;
-    };
+    warn "Updating ...\n";
+    $self->es_index;
 };
 
 before 'delete' => sub {
     my $self = shift;
 
-    return do {
-
-        warn "Deleting...\n";
-        $self->es_delete;
-    };
+    warn "Deleting...\n";
+    $self->es_delete;
 };
 
 sub es_index_transfer {
