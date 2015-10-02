@@ -1,4 +1,4 @@
-package DBIx::Class::Elasticsearch::Role::ElasticResultSet;
+package Elasticsearch::Role::ResultSet;
 
 use strict;
 use warnings;
