@@ -81,6 +81,8 @@ sub es_delete {
 
     my $elastic_rs = $schema->dispatcher->{$class};
 
+    my $is_primary = 0;
+
     for my $rs (@$elastic_rs) {
 
         eval "use $rs";
@@ -93,7 +95,7 @@ sub es_delete {
         if ( $rs->es_is_primary( $class ) ) {
 
             $rs->es_delete($dbic_rs);
-            $self->$orig if $self->in_storage;
+            $is_primary = 1;
 
         } elsif( $rs->es_is_nested($class) ) {
 
@@ -101,6 +103,8 @@ sub es_delete {
             $rs->es_index($dbic_rs);
         }
     }
+
+    $self->$orig if $is_primary;
 }
 
 after 'insert' => sub {
