@@ -12,38 +12,64 @@ sub es_index {
     my $schema = $self->result_source->schema;
     my $class  = $self->result_source->source_name;
 
-    my $elastic_rs  = $schema->dispatcher->{$class};
-    my $dbix_rs     = $self->result_source->resultset;
-    my $me          = $dbix_rs->current_source_alias;
-    my $dbix_params = { map { $me . "." . $_ => $self->$_ } $self->primary_columns };
-
-    $dbix_rs = $self->result_source->resultset->search_rs($dbix_params);
+    my $elastic_rs = $schema->dispatcher->{$class};
 
     for my $rs (@$elastic_rs) {
 
         eval "use $rs";
 
-        warn $@ if $@;
+        die $@ if $@;
 
-        if ( $rs->es_is_primary ) {
+        my $obj = $self->es_obj_builder($rs);
+        my $dbic_rs = $self->es_dbic_builder( $rs, $obj );
 
-            $rs->es_index($dbix_rs);
-
-        } elsif ( $rs->es_is_nested ) {
-
-            my $higher_rs = $dbix_rs;
-            my $higher_class = $higher_rs->result_source->source_name
-
-            while ( !$rs->es_is_primary($higher_class) ) {
-
-                $higher_class = $higher_rs->result_source->source_name;
-                my $rel = $rs->relation_dispatcher->{nested}{$higher_class};
-                $higher_rs = $higher_rs->search_related( $rel, {} );
-            }
-
-            $rs->es_index->($dbix_rs);
-        }
+        $rs->es_index($dbic_rs);
     }
+}
+
+sub es_obj_builder {
+
+    my $self = shift;
+    my $rs   = shift;
+
+    my $class = $self->result_source->source_name;
+
+    my $obj = $self;
+
+    if ( $rs->es_is_primary($class) ) {
+
+    } elsif ( $rs->es_is_nested($class) ) {
+
+        my $obj_source = $obj->result_source->source_name;
+
+        while ( !$rs->es_is_primary($obj_source) ) {
+
+            my $rel = $rs->relation_dispatcher->{nested}{$obj_source};
+
+            $obj        = $obj->$rel;
+            $obj_source = $obj->result_source->source_name;
+
+        }
+
+    }
+
+    return $obj;
+
+}
+
+sub es_dbic_builder {
+
+    my $self = shift;
+    my $rs   = shift;
+    my $obj  = shift;
+
+    my $dbic_rs     = $rs->index_rs;
+    my $me          = $dbic_rs->current_source_alias;
+    my $dbic_params = { map { $me . "." . $_ => $obj->$_ } $obj->result_source->primary_columns };
+
+    $dbic_rs = $dbic_rs->search_rs($dbic_params);
+
+    return $dbic_rs;
 }
 
 sub es_delete {
@@ -53,20 +79,25 @@ sub es_delete {
     my $schema = $self->result_source->schema;
     my $class  = $self->result_source->source_name;
 
-    my $elastic_rs  = $schema->dispatcher->{$class};
-    my $dbix_rs     = $self->result_source->resultset;
-    my $me          = $dbix_rs->current_source_alias;
-    my $dbix_params = { map { $me . "." . $_ => $self->$_ } $self->primary_columns };
-
-    $dbix_rs = $self->result_source->resultset->search_rs($dbix_params);
+    my $elastic_rs = $schema->dispatcher->{$class};
 
     for my $rs (@$elastic_rs) {
 
         eval "use $rs";
 
-        warn $@ if $@;
+        die $@ if $@;
 
-        $rs->es_delete($dbix_rs);
+        my $obj     = $self->es_obj_builder($rs);
+        my $dbic_rs = $self->es_dbic_builder($rs, $obj);
+
+        if ( $rs->es_is_primary( $class ) ) {
+
+            $rs->es_delete($dbic_rs);
+
+        } elsif( $rs->es_is_nested($class) ) {
+
+            $rs->es_index($dbic_rs);
+        }
     }
 }
 

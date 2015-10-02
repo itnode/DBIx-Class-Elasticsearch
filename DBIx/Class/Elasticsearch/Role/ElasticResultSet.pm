@@ -11,15 +11,13 @@ use Moose::Role;
 sub es_index {
 
     my $self    = shift;
-    my $dbix_rs = shift;
+    my $dbic_rs = shift;
 
-    my $results = $self->index_rs($dbix_rs);
+    $dbic_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-    $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    while ( my $row = $dbic_rs->next ) {
 
-    while ( my $row = $results->next ) {
-
-        $row->{es_id} = $self->es_id( $row, $results );
+        $row->{es_id} = $self->es_id( $row, $dbic_rs );
 
         $self->es->index(
             {
@@ -36,15 +34,13 @@ sub es_index {
 sub es_delete {
 
     my $self    = shift;
-    my $dbix_rs = shift;
+    my $dbic_rs = shift;
 
-    my $results = $self->index_rs($dbix_rs);
+    $dbic_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-    $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    while ( my $row = $dbic_rs->next ) {
 
-    while ( my $row = $results->next ) {
-
-        my $id = $self->es_id( $row, $results );
+        my $id = $self->es_id( $row, $dbic_rs );
 
         $self->es->delete(
             id    => $id,
@@ -59,7 +55,7 @@ sub es_is_primary {
     my $self = shift;
     my $class = shift;
 
-    return 1 if $self->relation_dispatcher->{primary} eq == $class;
+    return 1 if $self->relation_dispatcher->{primary} eq $class;
 }
 
 sub es_is_nested {
