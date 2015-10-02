@@ -32,11 +32,12 @@ sub es_index {
         } elsif ( $rs->es_is_nested ) {
 
             my $higher_rs = $dbix_rs;
+            my $higher_class = $higher_rs->result_source->source_name
 
-            while ( !$higher_rs->es_is_primary ) {
+            while ( !$rs->es_is_primary($higher_class) ) {
 
-                my $tmp_class = $higher_rs->result_source->source_name;
-                my $rel = $higher_rs->relation_dispatcher->{nested}{$tmp_class};
+                $higher_class = $higher_rs->result_source->source_name;
+                my $rel = $rs->relation_dispatcher->{nested}{$higher_class};
                 $higher_rs = $higher_rs->search_related( $rel, {} );
             }
 

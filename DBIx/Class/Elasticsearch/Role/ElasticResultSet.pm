@@ -57,15 +57,17 @@ sub es_delete {
 sub es_is_primary {
 
     my $self = shift;
+    my $class = shift;
 
-    return 1 if $self->relation_dispatcher->{primary} eq == $self->index_rs->result_source->source_name;
+    return 1 if $self->relation_dispatcher->{primary} eq == $class;
 }
 
 sub es_is_nested {
 
     my $self = shift;
+    my $class = shift;
 
-    return 1 if $self->relation_dispatcher->{nested}{ $self->index_rs->result_source->source_name };
+    return 1 if $self->relation_dispatcher->{nested}{ $class };
 }
 
 sub es_batch_index {
