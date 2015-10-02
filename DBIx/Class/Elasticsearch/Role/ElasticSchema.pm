@@ -3,8 +3,6 @@ package DBIx::Class::Elasticsearch::Role::ElasticSchema;
 use strict;
 use warnings;
 
-use Log::Any::Adapter qw(Stderr);
-
 use Moose::Role;
 
 has es_store => (
@@ -31,6 +29,8 @@ sub es {
 
         if ( $settings->{debug} ) {
             $debug->{trace_to} = 'Stderr';
+
+            eval "use Log::Any::Adapter qw(Stderr);";
         }
 
         $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ), log_to => 'Stderr', cxn => $settings->{cxn}, %$debug );
