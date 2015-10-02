@@ -74,7 +74,7 @@ sub es_dbic_builder {
 
 sub es_delete {
 
-    my ($self) = @_;
+    my ($self, $orig) = @_;
 
     my $schema = $self->result_source->schema;
     my $class  = $self->result_source->source_name;
@@ -93,9 +93,11 @@ sub es_delete {
         if ( $rs->es_is_primary( $class ) ) {
 
             $rs->es_delete($dbic_rs);
+            $self->$orig if $self->in_storage;
 
         } elsif( $rs->es_is_nested($class) ) {
 
+            $self->$orig if $self->in_storage;
             $rs->es_index($dbic_rs);
         }
     }
@@ -115,11 +117,12 @@ after 'update' => sub {
     $self->es_index;
 };
 
-before 'delete' => sub {
+around 'delete' => sub {
+    my $orig = shift;
     my $self = shift;
 
     warn "Deleting...\n";
-    $self->es_delete;
+    $self->es_delete($orig);
 };
 
 sub es_index_transfer {
