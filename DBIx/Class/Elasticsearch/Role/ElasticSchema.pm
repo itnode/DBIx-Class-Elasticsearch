@@ -53,7 +53,7 @@ sub es_index_name {
     my $self = shift;
     return $self->connect_elasticsearch->{index} || ref $self;
 }
-
+=head2
 sub es_index_all {
     my $self = shift;
 
@@ -70,6 +70,24 @@ sub es_index_all {
             warn "Indexing source $source\n";
             $self->resultset($source)->es_batch_index;
         }
+    }
+
+}
+=cut
+
+sub es_index_all {
+
+    my $self = shift;
+
+    my $registered_elastic_rs = $self->connect_elasticsearch->{registered_elastic_rs};
+
+    foreach my $rs ( @$registered_elastic_rs ) {
+
+        eval "use $rs";
+
+        warn $@ if $@;
+
+        $rs->es_batch_index;
     }
 
 }

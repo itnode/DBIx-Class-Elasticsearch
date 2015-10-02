@@ -5,6 +5,7 @@ use warnings;
 
 use DBIx::Class::ResultClass::HashRefInflator;
 use Hash::Flatten qw(:all);
+use OASYS::Utils;
 
 use Moose::Role;
 
@@ -130,7 +131,7 @@ sub es_fetch_with_nested_relations {
     return $self->search( undef, $self->es_build_prefetch );
 
 }
-=cut
+
 sub es_index {
 
     my $self = shift;
@@ -142,22 +143,18 @@ sub es_index {
         $row->es_index;
     }
 }
-
+=cut
 sub es_batch_index {
     warn "Batch Indexing...\n";
 
     my $self = shift;
+    my $rs = shift;
 
     my $batch_size = shift || 1000;
     my $data = [];
 
-    return unless $self->es_has_searchable;
-
-    my @fields = $self->es_searchable_fields;
-
-    my $prefetch = $self->es_build_prefetch;
-
-    my $results = $self->search( undef, $prefetch );    # add prefetches
+    my $dbix_rs = $self->dbix_rs;
+    my $results = $self->index_rs($dbix_rs);    # add prefetches
 
     $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
@@ -166,7 +163,7 @@ sub es_batch_index {
     while ( my $row = $results->next ) {
         $counter++;
 
-        $row->{es_id} = $self->es_id($row);
+        $row->{es_id} = $self->es_id($row, $dbix_rs);
 
         push( @$data, $row );
         if ( $counter == $batch_size ) {
@@ -189,8 +186,9 @@ sub es_id {
 
     my $self = shift;
     my $row  = shift;
+    my $rs = shift;
 
-    my @pks = $self->result_source->primary_columns;
+    my @pks = $rs->result_source->primary_columns;
 
     my $ids = [];
 
@@ -204,7 +202,12 @@ sub es_id {
 
 sub es {
 
-    return shift->result_source->schema->es;
+    return shift->schema->es;
+}
+
+sub schema {
+
+    return OASYS::Utils->schema;
 }
 
 sub es_bulk {
@@ -212,11 +215,9 @@ sub es_bulk {
     my ( $self, $data ) = @_;
 
     my $bulk   = $self->es->bulk_helper;
-    my $schema = $self->result_source->schema;
+    my $schema = $self->schema;
 
     for my $row_raw (@$data) {
-
-        my $type = $self->result_source->name;
 
         my $row = {};
 
@@ -225,18 +226,12 @@ sub es_bulk {
             $row->{$key} = $row_raw->{$key} if $row_raw->{$key};
         }
 
-        my $parent = {};
-        if ( $self->es_is_child ) {
-
-            $parent = { parent => $self->es_parent };
-        }
 
         my $params = {
-            index  => $schema->es_index_name,
+            index  => $self->type,
             id     => $row->{es_id},
-            type   => $type,
+            type   => $self->type,
             source => $row,
-            %$parent,
         };
 
         $bulk->index($params);
