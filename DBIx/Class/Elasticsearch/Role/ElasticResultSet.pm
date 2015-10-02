@@ -211,13 +211,12 @@ sub es_id {
 
     my $self = shift;
     my $row  = shift;
-    my $rs   = shift;
 
-    my @pks = $rs->result_source->primary_columns;
+    my $pks = $self->es_id_columns;
 
     my $ids = [];
 
-    for my $pk (@pks) {
+    for my $pk (@$pks) {
 
         push @$ids, $row->{$pk};
     }
