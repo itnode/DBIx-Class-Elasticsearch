@@ -3,7 +3,7 @@ package DBIx::Class::Elasticsearch::Role::ElasticSchema;
 use strict;
 use warnings;
 
-#use Log::Any::Adapter qw(Stderr);
+use Log::Any::Adapter qw(Stderr);
 
 use Moose::Role;
 
@@ -43,9 +43,11 @@ sub es {
 sub es_dispatch {
 
     my $self = shift;
+    my $class = shift;
 
-    my $dispatcher = $self->dispatcher;
-    my $registered_elastic_rs = $self->dispatcher;
+    return unless $class;
+
+    return $self->dispatcher->{$class};
 }
 
 sub es_index_name {
@@ -184,27 +186,6 @@ sub es_drop_mapping {
         );
     }
 
-}
-
-sub es_dump_mappings {
-
-    my $self = shift;
-
-    my @sources = $self->sources;
-
-    @sources = grep { $self->resultset($_)->can('es_has_searchable') && $self->resultset($_)->es_has_searchable } @sources;
-
-    warn "Listing sources";
-    use DDP;
-    p @sources;
-
-    my $mappings = $self->es->indices->get_mapping(
-        index => $self->es_index_name,
-        type  => \@sources,
-    );
-
-    warn "Mapping";
-    p $mappings;
 }
 
 1;

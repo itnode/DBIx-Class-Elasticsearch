@@ -5,7 +5,6 @@ use warnings;
 
 use DBIx::Class::ResultClass::HashRefInflator;
 use Hash::Flatten qw(:all);
-use OASYS::Utils;
 
 use Moose::Role;
 
@@ -144,11 +143,37 @@ sub es_index {
     }
 }
 =cut
+
+sub es_index {
+
+    my $self    = shift;
+    my $dbix_rs = shift;
+
+    my $results = $self->index_rs($dbix_rs);
+
+    $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
+
+    while ( my $row = $results->next ) {
+
+        $row->{es_id} = $self->es_id( $row, $results );
+
+        $self->es->index(
+            {
+                index => $self->type,
+                id    => $row->{es_id},
+                type  => $self->type,
+                body  => $row,
+            }
+        );
+    }
+
+}
+
 sub es_batch_index {
     warn "Batch Indexing...\n";
 
     my $self = shift;
-    my $rs = shift;
+    my $rs   = shift;
 
     my $batch_size = shift || 1000;
     my $data = [];
@@ -163,7 +188,7 @@ sub es_batch_index {
     while ( my $row = $results->next ) {
         $counter++;
 
-        $row->{es_id} = $self->es_id($row, $dbix_rs);
+        $row->{es_id} = $self->es_id( $row, $dbix_rs );
 
         push( @$data, $row );
         if ( $counter == $batch_size ) {
@@ -186,7 +211,7 @@ sub es_id {
 
     my $self = shift;
     my $row  = shift;
-    my $rs = shift;
+    my $rs   = shift;
 
     my @pks = $rs->result_source->primary_columns;
 
@@ -205,11 +230,6 @@ sub es {
     return shift->schema->es;
 }
 
-sub schema {
-
-    return OASYS::Utils->schema;
-}
-
 sub es_bulk {
 
     my ( $self, $data ) = @_;
@@ -226,7 +246,6 @@ sub es_bulk {
             $row->{$key} = $row_raw->{$key} if $row_raw->{$key};
         }
 
-
         my $params = {
             index  => $self->type,
             id     => $row->{es_id},
@@ -239,6 +258,7 @@ sub es_bulk {
 
     $bulk->flush;
 }
+
 =head2
 sub es_build_field_mapping {
 
@@ -408,4 +428,5 @@ sub es_mapping {
 
 }
 =cut
+
 1;

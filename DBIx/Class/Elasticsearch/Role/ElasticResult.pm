@@ -5,6 +5,7 @@ use warnings;
 
 use Moose::Role;
 
+=head2
 sub es_index {
     my $self = shift;
 
@@ -31,7 +32,33 @@ sub es_index {
 
     return $self->es_index( $body->[0] );
 }
+=cut
 
+sub es_index {
+
+    my $self = shift;
+
+    my $schema = $self->result_source->schema;
+    my $class  = $self->result_source->source_name;
+
+    my $elastic_rs  = $schema->dispatcher->{$class};
+    my $dbix_rs     = $self->result_source->resultset;
+    my $me          = $dbix_rs->current_source_alias;
+    my $dbix_params = { map { $me . "." . $_ => $self->$_ } $self->primary_columns };
+
+    $dbix_rs = $self->result_source->resultset->search_rs($dbix_params);
+
+    for my $rs (@$elastic_rs) {
+
+        eval "use $rs";
+
+        warn $@ if $@;
+
+        $rs->es_index($dbix_rs);
+    }
+}
+
+=head2
 sub es_searchable_fields {
 
     return shift->result_source->resultset->es_searchable_fields;
@@ -61,17 +88,15 @@ sub es_parent {
 
     return shift->result_source->resultset->es_parent;
 }
+=cut
 
 after 'insert' => sub {
     my $self = shift;
 
     return do {
-        if ( $self->es_is_primary ) {
-            warn "Inserting ...";
-            $self->es_index;
-        } else {
-            $self;
-        }
+
+        warn "Inserting ...";
+        $self->es_index;
     };
 };
 
@@ -79,12 +104,9 @@ after 'update' => sub {
     my $self = shift;
 
     return do {
-        if ( $self->es_is_primary ) {
-            warn "Updating ...";
-            $self->es_index;
-        } else {
-            $self;
-        }
+
+        warn "Updating ...";
+        $self->es_index;
     };
 };
 
@@ -92,13 +114,9 @@ after 'delete' => sub {
     my $self = shift;
 
     return do {
-        if ( $self->es_is_primary ) {
-            warn "Deleting...\n";
-            $self->es_delete;
-        } else {
 
-            #$self;
-        }
+        warn "Deleting...\n";
+        $self->es_delete;
     };
 };
 
@@ -113,20 +131,16 @@ sub es_index_transfer {
 
         $parent = { parent => $self->es_parent };
     }
-    $self->es->index(
-        {
-            index => $self->result_source->schema->es_index_name,
-            id    => $body->{es_id},
-            type  => $type,
-            body  => $body,
-            %$parent,
-        }
-    );
+
 }
 
 sub es {
 
     return shift->result_source->schema->es;
+}
+
+sub schema {
+
 }
 
 sub es_delete {
