@@ -54,6 +54,20 @@ sub es_delete {
     }
 }
 
+sub es_is_primary {
+
+    my $self = shift;
+
+    return 1 if $self->relation_dispatcher->{primary} eq == $self->index_rs->result_source->source_name;
+}
+
+sub es_is_nested {
+
+    my $self = shift;
+
+    return 1 if $self->relation_dispatcher->{nested}{ $self->index_rs->result_source->source_name };
+}
+
 sub es_batch_index {
     warn "Batch Indexing...\n";
 
