@@ -1,4 +1,4 @@
-package Elasticsearch::Role::ResultSet;
+package Elasticsearch::ResultSet;
 
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use warnings;
 use DBIx::Class::ResultClass::HashRefInflator;
 use Hash::Flatten qw(:all);
 
-use Moose::Role;
+use Moose;
 
 sub es_index {
 
