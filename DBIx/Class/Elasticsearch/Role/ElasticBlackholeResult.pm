@@ -22,7 +22,7 @@ sub es_index {
 
         my $obj = $self->es_obj_builder($rs);
 
-        $rs->es_index($dbic_rs);
+        $self->schema->es_index_obj($obj);
     }
 }
 
@@ -31,9 +31,10 @@ sub es_obj_builder {
     my $self = shift;
     my $rs   = shift;
 
-    my $obj = { body => $self->get_columns };
+    my $body = { $self->get_columns };
+    my $obj = { body => $body };
     $obj->{type} = $rs->type;
-    $obj->{body}{es_id} = $self->es_build_id;
+    $obj->{body}{es_id} = $self->es_build_id($rs);
 
     return $obj;
 
@@ -50,7 +51,7 @@ sub es_build_id {
 
     for my $pk (@$pks) {
 
-        push @$ids, $row->{$pk};
+        push @$ids, $self->$pk;
     }
 
     return join '_', @$ids;
