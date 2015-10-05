@@ -13,23 +13,22 @@ has body => (
     is       => 'rw',
     isa      => 'HashRef',
     required => 0,
-    default => sub { {} }
+    default  => sub { {} }
 );
 
 has queries => (
     is       => 'rw',
     isa      => 'ArrayRef',
     required => 0,
-    default => sub { [] }
+    default  => sub { [] }
 );
 
 has filters => (
     is       => 'rw',
     isa      => 'ArrayRef',
     required => 0,
-    default => sub { [] }
+    default  => sub { [] }
 );
-
 
 =head2 size
 
@@ -243,6 +242,30 @@ sub es_index {
 
 }
 
+sub es_create {
+
+    my $self    = shift;
+    my $dbic_rs = shift;
+
+    $dbic_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+
+    while ( my $row = $dbic_rs->next ) {
+
+        $row->{es_id} = $self->es_id( $row, $dbic_rs );
+
+        my $id = $row->{es_id} ? { id => $row->{es_id} } : {};
+
+        $self->es->create(
+            {
+                index => $self->type,
+                type  => $self->type,
+                body  => $row,
+                %$id,
+            }
+        );
+    }
+}
+
 sub es_delete {
 
     my $self    = shift;
@@ -264,7 +287,7 @@ sub es_delete {
 
 sub es_is_primary {
 
-    my $self = shift;
+    my $self  = shift;
     my $class = shift;
 
     return 1 if $self->relation_dispatcher->{primary} eq $class;
@@ -272,10 +295,10 @@ sub es_is_primary {
 
 sub es_is_nested {
 
-    my $self = shift;
+    my $self  = shift;
     my $class = shift;
 
-    return 1 if $self->relation_dispatcher->{nested}{ $class };
+    return 1 if $self->relation_dispatcher->{nested}{$class};
 }
 
 sub es_batch_index {
@@ -321,6 +344,8 @@ sub es_id {
     my $row  = shift;
 
     my $pks = $self->es_id_columns;
+
+    return unless scalar @$pks;
 
     my $ids = [];
 
