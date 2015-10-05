@@ -4,9 +4,190 @@ use strict;
 use warnings;
 
 use DBIx::Class::ResultClass::HashRefInflator;
-use Hash::Flatten qw(:all);
+use Search::Elasticsearch::Compat::QueryParser;
+use namespace::autoclean;
 
 use Moose;
+
+has body => (
+    is       => 'rw',
+    isa      => 'HashRef',
+    required => 0,
+);
+
+has queries => (
+    is       => 'rw',
+    isa      => 'ArrayRef',
+    required => 0,
+);
+
+has filters => (
+    is       => 'rw',
+    isa      => 'ArrayRef',
+    required => 0,
+);
+
+
+=head2 size
+
+    Max size of Result
+
+=cut
+
+sub size {
+
+    my ( $self, $size ) = @_;
+    $self->body->{size} = $size;
+    return $self;
+
+}
+
+=head2 from
+
+    Offset for Result
+
+=cut 
+
+sub from {
+
+    my ( $self, $from ) = @_;
+    $self->body->{from} = $from;
+    return $self;
+}
+
+sub order_by {
+
+    my ( $self, $order ) = @_;
+
+    $self->body->{sort} = $order || [ { "_score" => 'desc' } ];
+    return $self;
+}
+
+=head2 query_string
+
+=cut
+
+sub query_string {
+
+    my ( $self, $searchstring ) = @_;
+
+    my $qp                    = Search::Elasticsearch::Compat::QueryParser->new();
+    my $filtered_query_string = $qp->filter($searchstring);
+    $self->body->{query}{query_string}{query} = $filtered_query_string;
+
+    return $self;
+}
+
+=head2 query
+
+    add query 
+
+=cut
+
+sub query {
+
+    my ( $self, $query ) = @_;
+    push @{ $self->{queries} }, $query;
+    return $self;
+}
+
+sub filter {
+
+    my ( $self, $filter ) = @_;
+    push @{ $self->filters }, $filter;
+    return $self;
+
+}
+
+=head2 highlighter
+
+    Add the highlighter on $field, must be mapped with term_vector => "with_positions_offsets"
+
+    "text" => { type => "string", index => "analyzed", "store" => "yes", "term_vector" => "with_positions_offsets" },
+
+
+=cut
+
+sub highlighter {
+
+    my ( $self, $field ) = @_;
+
+    die "Missing field for highlighter" unless $field;
+
+    $self->body->{highlight} = {
+        "number_of_fragments" => 3,
+        "fragment_size"       => 150,
+        "tags_schema"         => "styled",
+        "pre_tags"            => [ '<span class="marking1">', '<span class="marking2">', '<span class="marking3">' ],
+        "post_tags"           => [ "</span>", "</span>", "</span>" ],
+        "fields"              => { $field => { "number_of_fragments" => 5 }, }
+    };
+
+    return $self;
+}
+
+=head2 all
+
+    Return all items, based on chain
+
+=cut
+
+sub all {
+
+    my ($self) = @_;
+    $self->body->{track_scores} = 1;
+
+    use Data::Printer;
+
+    my $queries = $self->queries;
+    my $filters = $self->filters;
+
+    if ( @$queries == 1 ) {
+
+        $self->body->{query} = $queries->[0];
+
+    } elsif ( @$queries > 1 ) {
+
+        $self->body->{query}{and} = $queries;
+
+    }
+
+    if ( @$filters == 1 ) {
+
+        $self->body->{filter} = $filters->[0];
+
+    } elsif ( @$filters > 1 ) {
+
+        $self->body->{filter}{and} = $filters;
+
+    }
+
+    p $self->body->;
+
+    my $matches = $self->schema->es->search(
+        index => 'buuild-search',
+        type  => ['item'],
+        body  => $self->body->,
+    );
+
+    my $result = [];
+
+    foreach my $match ( @{ $matches->{hits}{hits} } ) {
+
+        my $doc = $match->{_source};
+
+        if ( $self->body->{highlight} ) {
+
+            # TODO fix fix text-assign
+            $doc->{highlight} = join( " … ", @{ $match->{highlight}{text} || [] } );
+
+        }
+
+        push @$result, $doc;
+    }
+
+    return $result;
+}
 
 sub es_index {
 
@@ -153,5 +334,7 @@ sub es_bulk {
 
     $bulk->flush;
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;
