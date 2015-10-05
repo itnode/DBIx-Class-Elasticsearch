@@ -111,6 +111,25 @@ sub filter_rs {
     return $self->filter( { term => $params } );
 }
 
+sub exists {
+
+    my ( $self, $column ) = @_;
+
+    return unless $column;
+
+    return $self->filter( { exists => { field => $column } } );
+}
+
+sub range {
+
+    my ( $self, $column, $params ) = @_;
+
+    return unless $column;
+    return unless ref $params eq 'HASH' && %$params;
+
+    return $self->filter( { range => { $column => $params } } );
+}
+
 =head2 highlighter
 
     Add the highlighter on $field, must be mapped with term_vector => "with_positions_offsets"
