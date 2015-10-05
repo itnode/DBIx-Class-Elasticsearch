@@ -3,6 +3,8 @@ package DBIx::Class::Elasticsearch::Role::ElasticBlackholeResult;
 use strict;
 use warnings;
 
+use DateTime::Format::MySQL;
+
 use Moose::Role;
 
 sub es_index {
@@ -32,6 +34,16 @@ sub es_obj_builder {
     my $rs   = shift;
 
     my $body = { $self->get_columns };
+
+    for my $column ( $self->result_source->columns ) {
+
+        if ( $self->result_source->column_info($column)->{es_blackhole_create_date} ) {
+
+            my $dt = DateTime->now;
+            $body->{$column} = DateTime::Format::MySQL->format_datetime($dt);
+        }
+    }
+
     my $obj = { body => $body };
     $obj->{type} = $rs->type;
     $obj->{body}{es_id} = $self->es_build_id($rs);
