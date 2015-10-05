@@ -102,6 +102,15 @@ sub filter {
 
 }
 
+sub filter_rs {
+
+    my ( $self, $params ) = @_;
+
+    return unless ref $params eq 'HASH' && %$params;
+
+    return $self->filter( { term => $params } );
+}
+
 =head2 highlighter
 
     Add the highlighter on $field, must be mapped with term_vector => "with_positions_offsets"
