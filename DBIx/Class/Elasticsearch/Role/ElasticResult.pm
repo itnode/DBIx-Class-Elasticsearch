@@ -16,6 +16,8 @@ sub es_index {
 
     for my $rs (@$elastic_rs) {
 
+        next unless $self->schema->es_is_registered_rs($rs);
+
         eval "use $rs";
 
         die $@ if $@;
@@ -143,9 +145,14 @@ sub es_index_transfer {
 
 }
 
+sub schema {
+
+    return shift->result_source->schema;
+}
+
 sub es {
 
-    return shift->result_source->schema->es;
+    return shift->schema->es;
 }
 
 1;

@@ -50,6 +50,13 @@ sub es_dispatch {
     return $self->dispatcher->{$class};
 }
 
+sub es_is_registered_rs {
+
+    my ( $self, $rs ) = @_;
+
+    return 1 if grep { $_ eq $rs } @{ $self->connect_elasticsearch->{registered_elastic_rs} };
+}
+
 sub es_index_name {
 
     my $self = shift;
