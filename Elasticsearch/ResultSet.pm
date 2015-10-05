@@ -30,6 +30,20 @@ has filters => (
     default  => sub { [] }
 );
 
+has response => (
+    is       => 'rw',
+    isa      => 'HashRef',
+    required => 0,
+    default  => sub { {} }
+);
+
+has aggs => (
+    is       => 'rw',
+    isa      => 'ArrayRef',
+    required => 0,
+    default  => sub { [] },
+);
+
 =head2 size
 
     Max size of Result
@@ -89,8 +103,17 @@ sub query_string {
 sub query {
 
     my ( $self, $query ) = @_;
-    push @{ $self->{queries} }, $query;
+    push @{ $self->queries }, $query;
     return $self;
+}
+
+sub agg {
+
+    my ( $self, $name, $type, $params ) = @_;
+
+    return unless $name && $type && $params && ref $params eq 'HASH';
+
+    push @{ $self->aggs }, { $name => { $type => $params } };
 }
 
 sub filter {
@@ -171,6 +194,7 @@ sub all {
 
     my $queries = $self->queries;
     my $filters = $self->filters;
+    my $aggs    = $self->aggs;
 
     if ( @$queries == 1 ) {
 
@@ -180,6 +204,14 @@ sub all {
 
         $self->body->{query}{and} = $queries;
 
+    }
+
+    if ( @$aggs == 1 ) {
+
+        $self->body->{aggs} = $aggs->[0];
+    } elsif ( @$aggs > 1 ) {
+
+        $self->body->{aggs} = $aggs;
     }
 
     if ( @$filters == 1 ) {
@@ -194,15 +226,29 @@ sub all {
 
     p $self->body;
 
-    my $matches = $self->schema->es->search(
+    my $response = $self->schema->es->search(
         index => $self->type,
         type  => $self->type,
         body  => $self->body,
     );
 
+    p $response;
+
+    $self->response( $response );
+
+    return $self;
+
+}
+
+sub hits {
+
+    my ($self) = @_;
+
+    my $response = $self->response;
+
     my $result = [];
 
-    foreach my $match ( @{ $matches->{hits}{hits} } ) {
+    foreach my $match ( @{ $response->{hits}{hits} } ) {
 
         my $doc = $match->{_source};
 
@@ -217,6 +263,24 @@ sub all {
     }
 
     return $result;
+}
+
+sub buckets {
+
+    my ( $self, $agg_name ) = @_;
+
+    my $response = $self->response;
+
+    return unless $response->{aggregations}{$agg_name};
+
+    my $buckets = [];
+
+    for my $match ( @{ $response->{aggregations}{$agg_name}{buckets} } ) {
+
+        push @$buckets, $match;
+    }
+
+    return $buckets;
 }
 
 sub es_index {
