@@ -73,6 +73,21 @@ sub es_index_all {
 
 }
 
+sub es_index_obj {
+
+    my $self = shift;
+    my $obj = shift;
+
+    $self->es->index(
+            {
+                index => $obj->{type},
+                id    => $obj->{body}->{es_id},
+                type  => $obj->{type},
+                body  => $obj->{body},
+            }
+        );
+}
+
 sub es_create_index {
 
     my $self = shift;
