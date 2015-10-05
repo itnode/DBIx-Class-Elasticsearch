@@ -13,18 +13,21 @@ has body => (
     is       => 'rw',
     isa      => 'HashRef',
     required => 0,
+    default => sub { {} }
 );
 
 has queries => (
     is       => 'rw',
     isa      => 'ArrayRef',
     required => 0,
+    default => sub { [] }
 );
 
 has filters => (
     is       => 'rw',
     isa      => 'ArrayRef',
     required => 0,
+    default => sub { [] }
 );
 
 
@@ -162,12 +165,12 @@ sub all {
 
     }
 
-    p $self->body->;
+    p $self->body;
 
     my $matches = $self->schema->es->search(
-        index => 'buuild-search',
-        type  => ['item'],
-        body  => $self->body->,
+        index => $self->type,
+        type  => $self->type,
+        body  => $self->body,
     );
 
     my $result = [];
