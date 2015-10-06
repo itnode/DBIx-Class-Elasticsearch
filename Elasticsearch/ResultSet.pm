@@ -114,6 +114,15 @@ sub agg {
     return unless $params && ref $params eq 'HASH';
 
     push @{ $self->aggs }, $params;
+
+    return $self;
+}
+
+sub aggregation {
+
+    my ( $self, $params ) = @_;
+
+    return $self->agg($params);
 }
 
 sub filter {
