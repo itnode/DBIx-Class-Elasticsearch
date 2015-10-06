@@ -235,8 +235,6 @@ sub all {
 
     }
 
-    p $self->body;
-
     my $response = $self->schema->es->search(
         index => $self->type,
         type  => $self->type,
