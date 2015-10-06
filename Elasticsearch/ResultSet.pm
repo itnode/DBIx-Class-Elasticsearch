@@ -109,11 +109,11 @@ sub query {
 
 sub agg {
 
-    my ( $self, $name, $type, $params ) = @_;
+    my ( $self, $params ) = @_;
 
-    return unless $name && $type && $params && ref $params eq 'HASH';
+    return unless $params && ref $params eq 'HASH';
 
-    push @{ $self->aggs }, { $name => { $type => $params } };
+    push @{ $self->aggs }, $params;
 }
 
 sub filter {
@@ -224,15 +224,11 @@ sub all {
 
     }
 
-    p $self->body;
-
     my $response = $self->schema->es->search(
         index => $self->type,
         type  => $self->type,
         body  => $self->body,
     );
-
-    p $response;
 
     $self->response( $response );
 
