@@ -187,8 +187,10 @@ sub highlighter {
 
 sub all {
 
-    my ($self) = @_;
+    my ( $self, $search_params ) = @_;
     $self->body->{track_scores} = 1;
+
+    $search_params = {} unless ref $search_params eq 'HASH';
 
     use Data::Printer;
 
@@ -224,13 +226,16 @@ sub all {
 
     }
 
+    p $self->body;
+
     my $response = $self->schema->es->search(
         index => $self->type,
         type  => $self->type,
         body  => $self->body,
+        %$search_params,
     );
 
-    $self->response( $response );
+    $self->response($response);
 
     return $self;
 
