@@ -357,6 +357,14 @@ sub es_delete {
     }
 }
 
+sub es_transform {
+
+    my ( $self, $obj ) = @_;
+
+    # overwrite transform in Elasticsearch::ResultSet's to do actions on it
+    return $obj;
+}
+
 sub es_is_primary {
 
     my $self  = shift;
