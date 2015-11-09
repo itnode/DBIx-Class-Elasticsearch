@@ -42,7 +42,7 @@ sub es {
 
 sub es_dispatch {
 
-    my $self = shift;
+    my $self  = shift;
     my $class = shift;
 
     return unless $class;
@@ -69,7 +69,7 @@ sub es_index_all {
 
     my $registered_elastic_rs = $self->connect_elasticsearch->{registered_elastic_rs};
 
-    foreach my $rs ( @$registered_elastic_rs ) {
+    foreach my $rs (@$registered_elastic_rs) {
 
         eval "use $rs";
 
@@ -83,16 +83,24 @@ sub es_index_all {
 sub es_index_obj {
 
     my $self = shift;
-    my $obj = shift;
+    my $obj  = shift;
+
+    my $additional = {};
+
+    if ( $obj->{_parent} ) {
+
+        $additional->{parent} = $obj->{_parent};
+    }
 
     $self->es->index(
-            {
-                index => $obj->{type},
-                id    => $obj->{body}->{es_id},
-                type  => $obj->{type},
-                body  => $obj->{body},
-            }
-        );
+        {
+            index => $obj->{type},
+            id    => $obj->{body}->{es_id},
+            type  => $obj->{type},
+            body  => $obj->{body},
+            %$additional,
+        }
+    );
 }
 
 sub es_create_index {
@@ -104,7 +112,7 @@ sub es_create_index {
 
 sub es_collect_mappings {
 
-    my ( $self ) = @_;
+    my ($self) = @_;
 
     my $registered_elastic_rs = $self->connect_elasticsearch->{registered_elastic_rs};
 
@@ -120,8 +128,8 @@ sub es_collect_mappings {
 
         $self->es->indices->put_mapping(
             index => $rs->type,
-            type => $rs->type,
-            body => $rs->mapping,
+            type  => $rs->type,
+            body  => $rs->mapping,
 
         );
     }

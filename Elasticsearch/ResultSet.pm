@@ -296,9 +296,12 @@ sub es_index {
     my $self    = shift;
     my $dbic_rs = shift;
 
-    $dbic_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my $results = $dbic_rs;
+    $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-    while ( my $row = $dbic_rs->next ) {
+    while ( my $row = $results->next ) {
+
+        $row = $self->es_transform( $row, $dbic_rs );
 
         $row->{es_id} = $self->es_id( $row, $dbic_rs );
 
@@ -391,6 +394,7 @@ sub es_batch_index {
     my $data = [];
 
     my $results = $self->index_rs;    # add prefetches
+    my $dbic_rs = $self->index_rs;
 
     $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
@@ -398,6 +402,8 @@ sub es_batch_index {
 
     while ( my $row = $results->next ) {
         $counter++;
+
+        $row = $self->es_transform( $row, $dbic_rs );
 
         $row->{es_id} = $self->es_id( $row, $results );
 
@@ -458,11 +464,18 @@ sub es_bulk {
             $row->{$key} = $row_raw->{$key} if $row_raw->{$key};
         }
 
+        my $additional = {};
+
+        if ( $row->{_parent} ) {
+            $additional->{parent} = $row->{_parent};
+        }
+
         my $params = {
             index  => $self->type,
             id     => $row->{es_id},
             type   => $self->type,
             source => $row,
+            %$additional,
         };
 
         $bulk->index($params);
