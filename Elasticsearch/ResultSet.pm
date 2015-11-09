@@ -236,7 +236,7 @@ sub all {
     }
 
     my $response = $self->schema->es->search(
-        index => $self->type,
+        index => $self->index_name,
         type  => $self->type,
         body  => $self->body,
         %$search_params,
@@ -307,7 +307,7 @@ sub es_index {
 
         $self->es->index(
             {
-                index => $self->type,
+                index => $self->index_name,
                 id    => $row->{es_id},
                 type  => $self->type,
                 body  => $row,
@@ -322,9 +322,12 @@ sub es_create {
     my $self    = shift;
     my $dbic_rs = shift;
 
-    $dbic_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my $results = $dbic_rs;
+    $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-    while ( my $row = $dbic_rs->next ) {
+    while ( my $row = $results->next ) {
+
+        $row = $self->es_transform( $row, $dbic_rs );
 
         $row->{es_id} = $self->es_id( $row, $dbic_rs );
 
@@ -332,7 +335,7 @@ sub es_create {
 
         $self->es->create(
             {
-                index => $self->type,
+                index => $self->index_name,
                 type  => $self->type,
                 body  => $row,
                 %$id,
@@ -355,7 +358,7 @@ sub es_delete {
         $self->es->delete(
             id    => $id,
             type  => $self->type,
-            index => $self->type,
+            index => $self->index_name,
         );
     }
 }
@@ -467,11 +470,11 @@ sub es_bulk {
         my $additional = {};
 
         if ( $row->{_parent} ) {
-            $additional->{parent} = $row->{_parent};
+            $additional->{parent} = delete $row->{_parent};
         }
 
         my $params = {
-            index  => $self->type,
+            index  => $self->index_name,
             id     => $row->{es_id},
             type   => $self->type,
             source => $row,

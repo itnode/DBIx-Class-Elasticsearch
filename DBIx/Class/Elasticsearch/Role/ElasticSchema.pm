@@ -89,7 +89,7 @@ sub es_index_obj {
 
     if ( $obj->{_parent} ) {
 
-        $additional->{parent} = $obj->{_parent};
+        $additional->{parent} = delete $obj->{_parent};
     }
 
     $self->es->index(
@@ -122,12 +122,12 @@ sub es_collect_mappings {
 
         warn $@ if $@;
 
-        $self->es->indices->create( index => $rs->type );
+        $self->es->indices->create( index => $rs->index_name ) unless $self->es->indices->exists( index => $rs->index_name );
 
         my $mapping = $rs->mapping;
 
         $self->es->indices->put_mapping(
-            index => $rs->type,
+            index => $rs->index_name,
             type  => $rs->type,
             body  => $rs->mapping,
 
