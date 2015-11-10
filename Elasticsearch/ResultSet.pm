@@ -259,6 +259,15 @@ sub hits {
     foreach my $match ( @{ $response->{hits}{hits} } ) {
 
         my $doc = $match->{_source};
+        my $inner_hits = $match->{inner_hits};
+
+        if ( $inner_hits ) {
+
+            foreach my $key ( keys %$inner_hits ) {
+
+                $doc->{inner_hits}->{$key} = $match->{inner_hits}{$key}{hits}{hits};
+            }
+        }
 
         if ( $self->body->{highlight} ) {
 
