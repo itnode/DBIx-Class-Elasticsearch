@@ -265,7 +265,14 @@ sub hits {
 
             foreach my $key ( keys %$inner_hits ) {
 
-                $doc->{inner_hits}->{$key} = $match->{inner_hits}{$key}{hits}{hits};
+                my $inner_results = [];
+
+                foreach my $inner_result ( @{ $match->{inner_hits}{$key}{hits}{hits} } ) {
+
+                    push @$inner_results, $inner_result->{_source};
+                }
+
+                $doc->{inner_hits}->{$key} = $inner_results;
             }
         }
 
