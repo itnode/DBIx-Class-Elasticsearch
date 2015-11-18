@@ -44,7 +44,9 @@ sub es_obj_builder {
         }
     }
 
-    my $obj = { body => $body };
+    my $obj = $rs->es_transform($body);
+
+    $obj = { body => $body };
     $obj->{type} = $rs->type;
     $obj->{body}{es_id} = $self->es_build_id($rs);
 
