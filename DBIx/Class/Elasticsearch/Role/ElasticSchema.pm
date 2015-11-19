@@ -7,7 +7,7 @@ use Moose::Role;
 
 has es_store => (
     is  => 'rw',
-    isa => 'Object'
+    isa => 'Maybe[Object]'
 );
 
 has connect_elasticsearch => (
@@ -38,6 +38,18 @@ sub es {
     }
 
     return $self->es_store;
+}
+
+sub es_destroy {
+
+    my ( $self ) = @_;
+
+    $self->es_store(undef);
+
+    use DDP;
+    p $self->es_store;
+
+    $self->es_store;
 }
 
 sub es_dispatch {

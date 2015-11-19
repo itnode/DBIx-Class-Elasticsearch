@@ -258,10 +258,10 @@ sub hits {
 
     foreach my $match ( @{ $response->{hits}{hits} } ) {
 
-        my $doc = $match->{_source};
+        my $doc        = $match->{_source};
         my $inner_hits = $match->{inner_hits};
 
-        if ( $inner_hits ) {
+        if ($inner_hits) {
 
             foreach my $key ( keys %$inner_hits ) {
 
@@ -419,26 +419,31 @@ sub es_batch_index {
 
     my $counter = 0;
 
+    my $bulk = $self->es->bulk_helper;
+
     while ( my $row = $results->next ) {
-        $counter++;
+
+        my $additional = {};
 
         $row = $self->es_transform( $row, $dbic_rs );
-
         $row->{es_id} = $self->es_id( $row, $results );
 
-        push( @$data, $row );
-        if ( $counter == $batch_size ) {
-            warn "Batched $counter rows\n";
-            $self->es_bulk($data);
-
-            ( $data, $counter ) = ( [], 0 );
+        if ( $row->{_parent} ) {
+            $additional->{parent} = delete $row->{_parent};
         }
+
+        my $params = {
+            index  => $self->index_name,
+            id     => $row->{es_id},
+            type   => $self->type,
+            source => $row,
+            %$additional,
+        };
+
+        $bulk->index($params);
     }
 
-    if ( scalar @$data ) {
-        warn "Batched " . scalar @$data . " rows\n";
-        $self->es_bulk($data) if scalar @$data;
-    }
+    $bulk->flush;
 
     1;
 }
@@ -465,42 +470,6 @@ sub es_id {
 sub es {
 
     return shift->schema->es;
-}
-
-sub es_bulk {
-
-    my ( $self, $data ) = @_;
-
-    my $bulk   = $self->es->bulk_helper;
-    my $schema = $self->schema;
-
-    for my $row_raw (@$data) {
-
-        my $row = {};
-
-        for my $key ( keys %$row_raw ) {
-
-            $row->{$key} = $row_raw->{$key} if $row_raw->{$key};
-        }
-
-        my $additional = {};
-
-        if ( $row->{_parent} ) {
-            $additional->{parent} = delete $row->{_parent};
-        }
-
-        my $params = {
-            index  => $self->index_name,
-            id     => $row->{es_id},
-            type   => $self->type,
-            source => $row,
-            %$additional,
-        };
-
-        $bulk->index($params);
-    }
-
-    $bulk->flush;
 }
 
 __PACKAGE__->meta->make_immutable;
