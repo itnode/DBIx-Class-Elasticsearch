@@ -134,13 +134,10 @@ sub es_collect_mappings {
 
         warn $@ if $@;
 
-        $self->es->indices->create( index => $rs->index_name ) unless $self->es->indices->exists( index => $rs->index_name );
-
         my $mapping = $rs->mapping;
 
         $self->es->indices->put_template(
-            name => $rs->type
-            template => $rs->index_name,
+            name => $rs->type,
             body  => $rs->mapping,
 
         );
