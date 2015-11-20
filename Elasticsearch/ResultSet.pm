@@ -323,7 +323,7 @@ sub es_index {
 
         $self->es->index(
             {
-                index => $self->index_name,
+                index => $self->index_name($row),
                 id    => $row->{es_id},
                 type  => $self->type,
                 body  => $row,
@@ -433,7 +433,7 @@ sub es_batch_index {
         }
 
         my $params = {
-            index  => $self->index_name,
+            index  => $self->index_name($row),
             id     => $row->{es_id},
             type   => $self->type,
             source => $row,

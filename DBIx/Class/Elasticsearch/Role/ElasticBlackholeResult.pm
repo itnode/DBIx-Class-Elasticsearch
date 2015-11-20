@@ -49,6 +49,7 @@ sub es_obj_builder {
     $obj = { body => $body };
     $obj->{type} = $rs->type;
     $obj->{body}{es_id} = $self->es_build_id($rs);
+    $obj->{index} = $rs->index_name($obj);
 
     return $obj;
 
