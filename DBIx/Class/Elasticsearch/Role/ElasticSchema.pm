@@ -138,9 +138,9 @@ sub es_collect_mappings {
 
         my $mapping = $rs->mapping;
 
-        $self->es->indices->put_mapping(
-            index => $rs->index_name,
-            type  => $rs->type,
+        $self->es->indices->put_template(
+            name => $rs->type
+            template => $rs->index_name,
             body  => $rs->mapping,
 
         );
