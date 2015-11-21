@@ -22,7 +22,7 @@ sub es_index {
 
         die $@ if $@;
 
-        my $obj = $self->es_obj_builder($rs);
+        my $obj     = $self->es_obj_builder($rs);
         my $dbic_rs = $self->es_dbic_builder( $rs, $obj );
 
         $rs->es_index($dbic_rs);
@@ -38,6 +38,9 @@ sub es_obj_builder {
 
     my $obj = $self;
 
+    # Reload from db
+    $obj->discard_changes;
+
     if ( $rs->es_is_primary($class) ) {
 
     } elsif ( $rs->es_is_nested($class) ) {
@@ -48,9 +51,10 @@ sub es_obj_builder {
 
             my $rel = $rs->relation_dispatcher->{nested}{$obj_source};
 
-            $obj        = $obj->$rel;
-            $obj_source = $obj->result_source->source_name;
+            if ( $obj && ( $obj = $obj->$rel ) ) {
 
+                $obj_source = $obj->result_source->source_name;
+            }
         }
 
     }
@@ -76,7 +80,7 @@ sub es_dbic_builder {
 
 sub es_delete {
 
-    my ($self, $orig) = @_;
+    my ( $self, $orig ) = @_;
 
     my $schema = $self->result_source->schema;
     my $class  = $self->result_source->source_name;
@@ -91,15 +95,15 @@ sub es_delete {
 
         die $@ if $@;
 
-        my $obj     = $self->es_obj_builder($rs);
-        my $dbic_rs = $self->es_dbic_builder($rs, $obj);
+        my $obj = $self->es_obj_builder($rs);
+        my $dbic_rs = $self->es_dbic_builder( $rs, $obj );
 
-        if ( $rs->es_is_primary( $class ) ) {
+        if ( $rs->es_is_primary($class) ) {
 
             $rs->es_delete($dbic_rs);
             $is_primary = 1;
 
-        } elsif( $rs->es_is_nested($class) ) {
+        } elsif ( $rs->es_is_nested($class) ) {
 
             $self->$orig if $self->in_storage;
             $rs->es_index($dbic_rs);

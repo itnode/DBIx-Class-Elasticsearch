@@ -351,7 +351,7 @@ sub es_create {
 
         $self->es->create(
             {
-                index => $self->index_name,
+                index => $self->index_name($row),
                 type  => $self->type,
                 body  => $row,
                 %$id,
