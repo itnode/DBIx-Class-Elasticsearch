@@ -42,7 +42,7 @@ sub es {
 
 sub es_destroy {
 
-    my ( $self ) = @_;
+    my ($self) = @_;
 
     $self->es_store(undef);
 
@@ -138,9 +138,32 @@ sub es_collect_mappings {
 
         $self->es->indices->put_template(
             name => $rs->type,
-            body  => $rs->mapping,
+            body => $rs->mapping,
 
         );
+    }
+
+}
+
+sub drop_indexes {
+
+    my ($self) = shift;
+
+    my $registered_elastic_rs = $self->connect_elasticsearch->{registered_elastic_rs};
+
+    my $deleted_index = {};
+
+    foreach my $rs (@$registered_elastic_rs) {
+
+        eval "use $rs";
+
+        warn $@ if $@;
+
+        if ( !$deleted_index->{ $rs->index_name } ) {
+
+            $deleted_index->{ $rs->index_name } = 1;
+            $self->es->indices->delete( index => $rs->index_name );
+        }
     }
 
 }
