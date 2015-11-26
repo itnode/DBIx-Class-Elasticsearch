@@ -101,4 +101,9 @@ sub es {
     return shift->schema->es;
 }
 
+sub schema {
+
+    return shift->result_source->schema;
+}
+
 1;

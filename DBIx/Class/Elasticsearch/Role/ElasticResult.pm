@@ -34,6 +34,8 @@ sub es_obj_builder {
     my $self = shift;
     my $rs   = shift;
 
+    my $class = $self->result_source->source_name;
+
     my $obj = $self;
 
     # Reload from db
@@ -114,6 +116,25 @@ around 'delete' => sub {
     warn "Deleting...\n";
     $self->es_delete($orig);
 };
+
+sub es_index_transfer {
+
+    my ( $self, $body ) = @_;
+
+    my $type = $self->result_source->name;
+
+    my $parent = {};
+    if ( $self->es_is_child ) {
+
+        $parent = { parent => $self->es_parent };
+    }
+
+}
+
+sub schema {
+
+    return shift->result_source->schema;
+}
 
 sub es {
 
