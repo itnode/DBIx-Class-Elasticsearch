@@ -34,30 +34,10 @@ sub es_obj_builder {
     my $self = shift;
     my $rs   = shift;
 
-    my $class = $self->result_source->source_name;
-
     my $obj = $self;
 
     # Reload from db
     $obj->discard_changes;
-
-    if ( $rs->es_is_primary($class) ) {
-
-    } elsif ( $rs->es_is_nested($class) ) {
-
-        my $obj_source = $obj->result_source->source_name;
-
-        while ( !$rs->es_is_primary($obj_source) ) {
-
-            my $rel = $rs->relation_dispatcher->{nested}{$obj_source};
-
-            if ( $obj && ( $obj = $obj->$rel ) ) {
-
-                $obj_source = $obj->result_source->source_name;
-            }
-        }
-
-    }
 
     return $obj;
 
@@ -134,25 +114,6 @@ around 'delete' => sub {
     warn "Deleting...\n";
     $self->es_delete($orig);
 };
-
-sub es_index_transfer {
-
-    my ( $self, $body ) = @_;
-
-    my $type = $self->result_source->name;
-
-    my $parent = {};
-    if ( $self->es_is_child ) {
-
-        $parent = { parent => $self->es_parent };
-    }
-
-}
-
-sub schema {
-
-    return shift->result_source->schema;
-}
 
 sub es {
 

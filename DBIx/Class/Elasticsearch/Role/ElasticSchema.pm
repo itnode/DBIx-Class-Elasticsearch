@@ -40,18 +40,6 @@ sub es {
     return $self->es_store;
 }
 
-sub es_destroy {
-
-    my ($self) = @_;
-
-    $self->es_store(undef);
-
-    use DDP;
-    p $self->es_store;
-
-    $self->es_store;
-}
-
 sub es_dispatch {
 
     my $self  = shift;
@@ -164,33 +152,6 @@ sub drop_indexes {
             $deleted_index->{ $rs->index_name } = 1;
             $self->es->indices->delete( index => $rs->index_name );
         }
-    }
-
-}
-
-sub es_drop_mapping {
-
-    my $self = shift;
-
-    my $types   = [];
-    my @sources = $self->sources;
-
-    for my $source (@sources) {
-
-        my $rs          = $self->resultset($source);
-        my $source_info = $rs->result_source->source_info;
-
-        next unless $source_info && $source_info->{es_index_type} eq 'primary';
-
-        next unless $rs->can('es_has_searchable') && $rs->es_has_searchable;
-
-        warn "delete mapping $source";
-
-        $self->es->indices->delete_mapping(
-            index  => $self->es_index_name,
-            type   => $source,
-            ignore => 404,
-        );
     }
 
 }
