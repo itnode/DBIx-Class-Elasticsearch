@@ -39,7 +39,8 @@ sub es_obj_builder {
     my $obj = $self;
 
     # Reload from db
-    $obj->discard_changes;
+    $obj->discard_changes if !$obj->in_storage;
+
 
     if ( $rs->es_is_primary($class) ) {
 
@@ -156,7 +157,7 @@ sub schema {
 
 sub es {
 
-    return shift->schema->es;
+    return shift->schema->es_async;
 }
 
 1;

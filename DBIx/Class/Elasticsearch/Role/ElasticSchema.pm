@@ -3,12 +3,20 @@ package DBIx::Class::Elasticsearch::Role::ElasticSchema;
 use strict;
 use warnings;
 
+use Search::Elasticsearch::Async;
+
 use Moose::Role;
 
 has es_store => (
     is  => 'rw',
     isa => 'Maybe[Object]'
 );
+
+has es_async_store => (
+    is  => 'rw',
+    isa => 'Maybe[Object]'
+);
+
 
 has connect_elasticsearch => (
     is       => 'rw',
@@ -33,12 +41,38 @@ sub es {
             eval "use Log::Any::Adapter qw(Stderr);";
         }
 
-        $self->es_store( Search::Elasticsearch->new( nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ) ), log_to => 'Stderr', cxn => $settings->{cxn}, %$debug );
+        eval "use $settings->{cxn}" if $settings->{cxn};
+
+        $self->es_store( Search::Elasticsearch->new(  nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ), cxn => $settings->{cxn}, log_to => 'Stderr', %$debug ) );
 
     }
 
     return $self->es_store;
 }
+
+sub es_async {
+
+    my ($self) = @_;
+
+    if ( !$self->es_async_store ) {
+
+        my $settings = $self->connect_elasticsearch;
+
+        my $debug = {};
+
+        if ( $settings->{debug} ) {
+            $debug->{trace_to} = 'Stderr';
+
+            eval "use Log::Any::Adapter qw(Stderr);";
+        }
+
+        $self->es_async_store( Search::Elasticsearch::Async->new(  nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ), log_to => 'Stderr', %$debug ) );
+
+    }
+
+    return $self->es_async_store;
+}
+
 
 sub es_destroy {
 
@@ -104,7 +138,7 @@ sub es_index_obj {
         $additional->{parent} = delete $obj->{_parent};
     }
 
-    $self->es->index(
+    $self->es_async->index(
         {
             index => $obj->{type},
             id    => $obj->{body}->{es_id},

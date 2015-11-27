@@ -321,7 +321,7 @@ sub es_index {
 
         $row->{es_id} = $self->es_id( $row, $dbic_rs );
 
-        $self->es->index(
+        $self->es_async->index(
             {
                 index => $self->index_name($row),
                 id    => $row->{es_id},
@@ -419,7 +419,7 @@ sub es_batch_index {
 
     my $counter = 0;
 
-    my $bulk = $self->es->bulk_helper;
+    my $bulk = $self->es_async->bulk_helper;
 
     while ( my $row = $results->next ) {
 
