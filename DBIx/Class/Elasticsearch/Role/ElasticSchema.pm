@@ -54,6 +54,8 @@ sub es_async {
 
     my ($self) = @_;
 
+    warn "requesting async";
+
     if ( !$self->es_async_store ) {
 
         my $settings = $self->connect_elasticsearch;
@@ -67,7 +69,7 @@ sub es_async {
         }
 
         $self->es_async_store( Search::Elasticsearch::Async->new(  nodes => sprintf( '%s:%s', $settings->{host}, $settings->{port} ), log_to => 'Stderr', %$debug ) );
-
+        warn "build async obj";
     }
 
     return $self->es_async_store;
@@ -146,7 +148,7 @@ sub es_index_obj {
             body  => $obj->{body},
             %$additional,
         }
-    );
+    )->then( sub { my $result = shift; } );
 }
 
 sub es_create_index {
