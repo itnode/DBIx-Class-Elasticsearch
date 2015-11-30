@@ -163,7 +163,7 @@ sub drop_indexes {
 
             $deleted_index->{ $rs->index_name } = 1;
             $self->es->indices->delete(
-                index => $rs->index_name,
+                index  => $rs->index_name,
                 ignore => 404,
             );
         }
@@ -196,6 +196,50 @@ sub es_drop_mapping {
         );
     }
 
+}
+
+sub es_create_repository {
+
+    my ( $self, $repository, $body ) = @_;
+
+    return unless $repository;
+
+    $body = {} unless ref $body;
+
+    $self->es->snapshot->create_repository(
+        repository => $repository,
+        body       => $body,
+    );
+}
+
+sub es_create_snapshot {
+
+    my ( $self, $repository, $snapshot, $body ) = @_;
+
+    return unless $repository && $snapshot;
+
+    $body = {} unless ref $body;
+
+    $self->es->snapshoft->create(
+        repository => $repository,
+        snapshot   => $snapshot,
+        body       => $body,
+    );
+}
+
+sub es_restore_snapshot {
+
+    my ( $self, $repository, $snapshot, $body ) = @_;
+
+    return unless $repository && $snapshot;
+
+    $body = {} unless ref $body;
+
+    $self->es->snapshot->restore(
+        repository => $repository,
+        snapshot   => $snapshot,
+        body       => $body,
+    );
 }
 
 1;
