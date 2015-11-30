@@ -165,7 +165,7 @@ sub drop_indexes {
             $self->es->indices->delete(
                 index => $rs->index_name,
                 ignore => 404,
-            ) if $self->es->indices->exists( index => $rs->index_name );
+            );
         }
     }
 
