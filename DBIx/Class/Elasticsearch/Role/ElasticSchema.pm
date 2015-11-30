@@ -220,7 +220,7 @@ sub es_create_snapshot {
 
     $body = {} unless ref $body;
 
-    $self->es->snapshoft->create(
+    $self->es->snapshot->create(
         repository => $repository,
         snapshot   => $snapshot,
         body       => $body,
