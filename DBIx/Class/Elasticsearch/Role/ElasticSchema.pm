@@ -162,7 +162,10 @@ sub drop_indexes {
         if ( !$deleted_index->{ $rs->index_name } ) {
 
             $deleted_index->{ $rs->index_name } = 1;
-            $self->es->indices->delete( index => $rs->index_name ) if $self->es->indices->exists( index => $rs->index_name );
+            $self->es->indices->delete(
+                index => $rs->index_name,
+                ignore => 404,
+            ) if $self->es->indices->exists( index => $rs->index_name );
         }
     }
 
