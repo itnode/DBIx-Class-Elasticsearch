@@ -150,10 +150,84 @@ sub drop_indexes {
         if ( !$deleted_index->{ $rs->index_name } ) {
 
             $deleted_index->{ $rs->index_name } = 1;
-            $self->es->indices->delete( index => $rs->index_name );
+            $self->es->indices->delete(
+                index  => $rs->index_name,
+                ignore => 404,
+            );
         }
     }
 
+}
+
+sub es_drop_mapping {
+
+    my $self = shift;
+
+    my $types   = [];
+    my @sources = $self->sources;
+
+    for my $source (@sources) {
+
+        my $rs          = $self->resultset($source);
+        my $source_info = $rs->result_source->source_info;
+
+        next unless $source_info && $source_info->{es_index_type} eq 'primary';
+
+        next unless $rs->can('es_has_searchable') && $rs->es_has_searchable;
+
+        warn "delete mapping $source";
+
+        $self->es->indices->delete_mapping(
+            index  => $self->es_index_name,
+            type   => $source,
+            ignore => 404,
+        );
+    }
+
+}
+
+sub es_create_repository {
+
+    my ( $self, $repository, $body ) = @_;
+
+    return unless $repository;
+
+    $body = {} unless ref $body;
+
+    $self->es->snapshot->create_repository(
+        repository => $repository,
+        body       => $body,
+    );
+}
+
+sub es_create_snapshot {
+
+    my ( $self, $repository, $snapshot, $body ) = @_;
+
+    return unless $repository && $snapshot;
+
+    $body = {} unless ref $body;
+
+    $self->es->snapshot->create(
+        repository => $repository,
+        snapshot   => $snapshot,
+        body       => $body,
+    );
+}
+
+sub es_restore_snapshot {
+
+    my ( $self, $repository, $snapshot, $body ) = @_;
+
+    return unless $repository && $snapshot;
+
+    $body = {} unless ref $body;
+
+    $self->es->snapshot->restore(
+        repository => $repository,
+        snapshot   => $snapshot,
+        body       => $body,
+    );
 }
 
 1;
