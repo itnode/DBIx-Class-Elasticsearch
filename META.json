@@ -4,7 +4,7 @@
       "Patrick Kilter <pas.freelance@googlemail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v2.4.1, CPAN::Meta::Converter version 2.142690",
+   "generated_by" : "Minilla/v2.4.1, CPAN::Meta::Converter version 2.150001",
    "license" : [
       "perl_5"
    ],
@@ -42,6 +42,9 @@
       },
       "runtime" : {
          "requires" : {
+            "DBIx::Class" : "0",
+            "Moose::Role" : "0",
+            "Search::Elasticsearch" : "0",
             "perl" : "5.008001"
          }
       },
@@ -52,5 +55,10 @@
       }
    },
    "release_status" : "unstable",
-   "version" : "0.01"
+   "version" : "0.01",
+   "x_contributors" : [
+      "Sales User <sales@nydsosweb6.(none)>",
+      "Chris Shepherd <cshepherd@about.com>",
+      "Jens Gassmann <jens.gassmann@atomix.de>"
+   ]
 }
