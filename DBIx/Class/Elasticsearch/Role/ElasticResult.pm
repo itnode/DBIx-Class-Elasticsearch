@@ -12,7 +12,7 @@ sub es_index {
     my $schema = $self->result_source->schema;
     my $class  = $self->result_source->source_name;
 
-    my $elastic_rs = $schema->dispatcher->{$class};
+    my $elastic_rs = $schema->es_dispatch->{$class};
 
     for my $rs (@$elastic_rs) {
 
@@ -96,7 +96,7 @@ sub es_delete {
     my $schema = $self->result_source->schema;
     my $class  = $self->result_source->source_name;
 
-    my $elastic_rs = $schema->dispatcher->{$class};
+    my $elastic_rs = $schema->es_dispatch->{$class};
 
     my $is_primary = 0;
 
@@ -109,16 +109,7 @@ sub es_delete {
         my $obj = $self->es_obj_builder($rs);
         my $dbic_rs = $self->es_dbic_builder( $rs, $obj );
 
-        if ( $rs->es_is_primary($class) ) {
-
-            $rs->es_delete($dbic_rs);
-            $is_primary = 1;
-
-        } elsif ( $rs->es_is_nested($class) ) {
-
-            $self->$orig if $self->in_storage;
-            $rs->es_index($dbic_rs);
-        }
+        $rs->es_delete($dbic_rs);
     }
 
     $self->$orig if $is_primary;

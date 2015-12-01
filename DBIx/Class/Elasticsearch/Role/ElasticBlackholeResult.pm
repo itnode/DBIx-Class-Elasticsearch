@@ -14,7 +14,7 @@ sub es_index {
     my $schema = $self->result_source->schema;
     my $class  = $self->result_source->source_name;
 
-    my $elastic_rs = $schema->dispatcher->{$class};
+    my $elastic_rs = $schema->es_dispatch->{$class};
 
     for my $rs (@$elastic_rs) {
 

@@ -17,6 +17,13 @@ has connect_elasticsearch => (
     default  => sub { host => "localhost", port => 9200, cxn => undef, debug => 0 },
 );
 
+has dispatcher => (
+    is       => 'rw',
+    isa      => 'HashRef',
+    required => 0,
+    default  => sub { {} },
+);
+
 sub es {
 
     my ($self) = @_;
@@ -46,6 +53,24 @@ sub es_dispatch {
     my $class = shift;
 
     return unless $class;
+
+    if ( !$self->dispatcher ) {
+
+        my $registered_elastic_rs = $self->connect_elasticsearch->{registered_elastic_rs};
+
+        foreach my $rs (@$registered_elastic_rs) {
+
+            eval { use $rs; };
+
+            die $@ if $@;
+
+            for my $dispatched ( @{ $rs->es_dispatcher } ) {
+
+                $self->dispatcher->{$dispatched} = [] unless ref $self->dispatcher->{$dispatched};
+                push @{ $self->dispatcher->{$dispatched} }, $rs;
+            }
+        }
+    }
 
     return $self->dispatcher->{$class};
 }
