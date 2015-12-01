@@ -51,22 +51,17 @@ sub es_dispatch {
 
     my $self  = shift;
 
-    use DDP;
-    p $self->dispatcher;
-
     if ( !$self->dispatcher ) {
 
+        $self->dispatcher( {} );
+
         my $registered_elastic_rs = $self->connect_elasticsearch->{registered_elastic_rs};
-        p $registered_elastic_rs;
+
         foreach my $rs (@$registered_elastic_rs) {
 
-            p $rs;
             eval "use $rs";
 
             die $@ if $@;
-
-            use DDP;
-            p $rs->es_dispatcher;
 
             for my $dispatched ( @{ $rs->es_dispatcher } ) {
 
@@ -75,9 +70,6 @@ sub es_dispatch {
             }
         }
     }
-
-    use DDP;
-    p $self->dispatcher;
 
     return $self->dispatcher;
 }
