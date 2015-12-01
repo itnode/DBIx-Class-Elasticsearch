@@ -4,3 +4,7 @@ on 'test' => sub {
     requires 'Test::More', '0.98';
 };
 
+requires "Search::Elasticsearch";
+requires "Moose::Role";
+requires "DBIx::Class";
+
