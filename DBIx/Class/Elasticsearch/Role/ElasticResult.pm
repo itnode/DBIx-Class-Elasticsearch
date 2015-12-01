@@ -22,8 +22,17 @@ sub es_index {
 
         die $@ if $@;
 
-        my $obj     = $self->es_obj_builder($rs);
-        my $dbic_rs = $self->es_dbic_builder( $rs, $obj );
+        my $dbic_rs;
+
+        if ( $rs->es_update_trigger && $rs->es_update_trigger->{$class} ) {
+
+            my $keys = $rs->es_update_trigger->{$class};
+            $dbic_rs = $self->es_dbic_triggered_builder( $rs, $keys );
+        } else {
+
+            my $obj = $self->es_obj_builder($rs);
+            $dbic_rs = $self->es_dbic_builder( $rs, $obj );
+        }
 
         $rs->es_index($dbic_rs);
     }
@@ -43,6 +52,26 @@ sub es_obj_builder {
 
     return $obj;
 
+}
+
+sub es_dbic_triggered_builder {
+
+    my $self = shift;
+    my $rs   = shift;
+    my $keys = shift;
+
+    my $dbic_rs     = $rs->index_rs;
+    my $dbic_params = {};
+
+    for my $i ( 0 .. ( scalar @{ $keys->{search_keys} } - 1 ) ) {
+
+        my $attr = $keys->{obj_columns}->[$i];
+        $dbic_params->{ $keys->{search_keys}->[$i] } = $self->$attr;
+    }
+
+    $dbic_rs = $dbic_rs->search_rs($dbic_params);
+
+    return $dbic_rs;
 }
 
 sub es_dbic_builder {

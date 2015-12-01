@@ -313,6 +313,7 @@ sub es_index {
     my $dbic_rs = shift;
 
     my $results = $dbic_rs;
+
     $results->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
     while ( my $row = $results->next ) {
