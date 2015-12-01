@@ -1,27 +1,3 @@
-<<<<<<< HEAD
-# NAME
-
-DBIx::Class::Elasticsearch - It's new $module
-
-# SYNOPSIS
-
-    use DBIx::Class::Elasticsearch;
-
-# DESCRIPTION
-
-DBIx::Class::Elasticsearch is ...
-
-# LICENSE
-
-Copyright (C) Patrick Kilter.
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-# AUTHOR
-
-Patrick Kilter <pas.freelance@googlemail.com>
-=======
 ## Description
 
 DBIx::Class::Elasticsearch is a Module to link your DBIx::Class Schema to Elastic faster.
@@ -64,4 +40,3 @@ This module is based on Chris 'SchepFc3' Shepherd work, which you can find here:
 
 * Jens Gassmann  <jg@gassmann.it>
 * Patrick Kilter <pk@gassmann.it>
->>>>>>> 9646092f4b671d3ea67c786c058b9f4f6a222c8a
