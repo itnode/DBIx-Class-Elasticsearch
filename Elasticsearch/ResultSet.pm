@@ -387,6 +387,14 @@ sub es_transform {
     return $obj;
 }
 
+sub es_update_trigger {
+
+    my ( $self ) = @_;
+
+    # overwrite in Elasticsearch::ResultSet's if needed
+    return;
+}
+
 sub es_batch_index {
     warn "Batch Indexing...\n";
 
