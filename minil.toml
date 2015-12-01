@@ -1,0 +1,4 @@
+name = "DBIx-Class-Elasticsearch"
+# badges = ["travis"]
+module_maker="ModuleBuildTiny"
+
