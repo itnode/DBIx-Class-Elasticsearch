@@ -27,7 +27,17 @@ It helps you, to denormalize your relational database schema to fit into the doc
 
 This repository is under development. API changes are possible at this point of time. We will create more documentation if we tested this in the wild.
 
-head2 Setting up your DBIx::Model
+=head2 TODO
+
+=over
+
+=item Add an Application Example
+
+=item Complete the Docs
+
+=back
+
+=head2 Setting up your DBIx::Model
 
 =head3 Adding role to your Schema Class
 
@@ -57,7 +67,12 @@ This module is based on Chris 'SchepFc3' Shepherd work, which you can find here:
 
 =head2 Authors
 
-* Jens Gassmann  <jg@gassmann.it>
-* Patrick Kilter <pk@gassmann.it>
+=over
+
+=item Jens Gassmann  <jg@gassmann.it>
+=item Patrick Kilter <pk@gassmann.it>
+
+=back
+
 =cut
 
