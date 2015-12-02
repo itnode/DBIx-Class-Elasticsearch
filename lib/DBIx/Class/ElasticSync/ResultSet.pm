@@ -1,4 +1,4 @@
-package Elasticsearch::ResultSet;
+package DBIx::Class::ElasticSync::ResultSet;
 
 use strict;
 use warnings;

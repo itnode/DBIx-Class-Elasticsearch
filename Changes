@@ -2,5 +2,11 @@ Revision history for Perl extension DBIx-Class-Elasticsearch
 
 {{$NEXT}}
 
+0.02 2015-12-01T15:46:05Z
+
+    - Fix path for modules (move into lib/)
+
+0.01 2015-12-01T12:35:14Z
+
     - original version
 
