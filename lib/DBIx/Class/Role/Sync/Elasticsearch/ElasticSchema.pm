@@ -1,4 +1,4 @@
-package DBIx::Class::Elasticsearch::Role::ElasticSchema;
+package DBIx::Class::Role::Sync::Elasticsearch::ElasticSchema;
 
 use strict;
 use warnings;
