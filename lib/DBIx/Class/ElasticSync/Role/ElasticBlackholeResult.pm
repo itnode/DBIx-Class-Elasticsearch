@@ -1,4 +1,4 @@
-package DBIx::Class::Role::Sync::Elasticsearch::ElasticBlackholeResult;
+package DBIx::Class::ElasticSync::Role::ElasticBlackholeResult;
 
 use strict;
 use warnings;
