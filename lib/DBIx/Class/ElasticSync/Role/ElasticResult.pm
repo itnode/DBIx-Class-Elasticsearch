@@ -5,6 +5,12 @@ use warnings;
 
 use Moose::Role;
 
+=head2
+
+dispatches the Result, builds the needed DBIC ResultSet and gives it to the Indexing function
+
+=cut
+
 sub es_index {
 
     my $self = shift;
@@ -29,6 +35,12 @@ sub es_index {
     }
 }
 
+=head2 es_obj_builder
+
+Reloads the Object from the Database to get a clean Row Object
+
+=cut
+
 sub es_obj_builder {
 
     my $self = shift;
@@ -45,6 +57,12 @@ sub es_obj_builder {
 
 }
 
+=head2 es_dbic_builder
+
+Builds the Resultset for Indexing
+
+=cut
+
 sub es_dbic_builder {
 
     my $self = shift;
@@ -59,6 +77,12 @@ sub es_dbic_builder {
 
     return $dbic_rs;
 }
+
+=head2 es_delete
+
+Dispatches and give the DBIC Resultset to the delete function
+
+=cut
 
 sub es_delete {
 
