@@ -13,6 +13,17 @@
       "version" : "2"
    },
    "name" : "DBIx-Class-ElasticSync",
+   "resources" : {
+	"repository" : {
+		"url" : "https://github.com/itnode/DBIx-Class-Elasticsearch.git",
+		"web" : "https://github.com/itnode/DBIx-Class-Elasticsearch",
+		"type" : "git"
+		
+	},
+	"bugtracker" : {
+		"web" : "https://github.com/itnode/DBIx-Class-Elasticsearch/issues"
+	}
+   },
    "no_index" : {
       "directory" : [
          "t",
