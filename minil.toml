@@ -1,4 +1,4 @@
-name = "DBIx-Class-Elasticsearch"
+name = "DBIx-Class-ElasticSync"
 # badges = ["travis"]
 module_maker="ModuleBuildTiny"
 

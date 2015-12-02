@@ -1,6 +1,10 @@
-Revision history for Perl extension DBIx-Class-Elasticsearch
+Revision history for Perl extension DBIx-Class-ElasticSync
 
 {{$NEXT}}
+
+0.03 2015-12-02T11:51:59Z
+
+    - Rename to DBIx-Class-ElasticSync
 
 0.02 2015-12-01T15:46:05Z
 

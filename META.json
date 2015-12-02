@@ -1,18 +1,18 @@
 {
-   "abstract" : "It's new $module",
+   "abstract" : "Helps keep your data in Sync with Elastic",
    "author" : [
-      "Patrick Kilter <pas.freelance@googlemail.com>"
+      "* Jens Gassmann  <jg@gassmann.it>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v2.4.1, CPAN::Meta::Converter version 2.150001",
+   "generated_by" : "Minilla/v2.4.1, CPAN::Meta::Converter version 2.142690",
    "license" : [
-      "perl_5"
+      "unknown"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
       "version" : "2"
    },
-   "name" : "DBIx-Class-Elasticsearch",
+   "name" : "DBIx-Class-ElasticSync",
    "no_index" : {
       "directory" : [
          "t",
@@ -55,10 +55,11 @@
       }
    },
    "release_status" : "unstable",
-   "version" : "0.02",
+   "version" : "0.03",
    "x_contributors" : [
       "Sales User <sales@nydsosweb6.(none)>",
       "Chris Shepherd <cshepherd@about.com>",
-      "Jens Gassmann <jens.gassmann@atomix.de>"
+      "Jens Gassmann <jens.gassmann@atomix.de>",
+      "Patrick Kilter <pas.freelance@googlemail.com>"
    ]
 }
