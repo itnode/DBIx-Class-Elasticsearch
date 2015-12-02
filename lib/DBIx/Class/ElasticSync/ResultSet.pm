@@ -318,9 +318,14 @@ sub es_index {
 
     while ( my $row = $results->next ) {
 
-        $row = $self->es_transform( $row, $dbic_rs );
+        my $additional = {};
 
+        $row = $self->es_transform( $row, $dbic_rs );
         $row->{es_id} = $self->es_id( $row, $dbic_rs );
+
+        if ( $row->{_parent} ) {
+            $additional->{parent} = delete $row->{_parent};
+        }
 
         $self->es->index(
             {
