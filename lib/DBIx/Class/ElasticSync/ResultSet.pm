@@ -46,7 +46,9 @@ has aggs => (
 
 =head2 size
 
-    Max size of Result
+Set maximum hit size for the Query
+
+	$elastic_rs->size(10)
 
 =cut
 
@@ -60,7 +62,7 @@ sub size {
 
 =head2 from
 
-    Offset for Result
+Offset for Result
 
 =cut 
 
@@ -71,6 +73,14 @@ sub from {
     return $self;
 }
 
+=head2 order_by
+
+Order the Hits in the Elastic response
+
+	$elastic_rs->order_by( { "fieldname" => "desc" } )
+
+=cut
+
 sub order_by {
 
     my ( $self, $order ) = @_;
@@ -80,6 +90,10 @@ sub order_by {
 }
 
 =head2 query_string
+
+Query String for Elastic Query String Query
+
+	$elastic_rs->query_string('foo*')
 
 =cut
 
@@ -96,7 +110,9 @@ sub query_string {
 
 =head2 query
 
-    add query 
+add query to Elastic Request
+
+	$elastic_rs->query( { match_all => {} } )
 
 =cut
 
@@ -106,6 +122,12 @@ sub query {
     push @{ $self->queries }, $query;
     return $self;
 }
+
+=head2 agg
+
+add aggregation to Elastic Request
+
+=cut
 
 sub agg {
 
@@ -118,12 +140,24 @@ sub agg {
     return $self;
 }
 
+=head2 aggregation
+
+proxy function for "agg"
+
+=cut
+
 sub aggregation {
 
     my ( $self, $params ) = @_;
 
     return $self->agg($params);
 }
+
+=head2 filter
+
+Adds filter to Elastic Request. Deprecated since Elasticsearch 2.x
+
+=cut
 
 sub filter {
 
@@ -163,7 +197,7 @@ sub range {
 
 =head2 highlighter
 
-    Add the highlighter on $field, must be mapped with term_vector => "with_positions_offsets"
+Add the highlighter on $field, must be mapped with term_vector => "with_positions_offsets"
 
     "text" => { type => "string", index => "analyzed", "store" => "yes", "term_vector" => "with_positions_offsets" },
 
@@ -190,7 +224,7 @@ sub highlighter {
 
 =head2 all
 
-    Return all items, based on chain
+Collects all items, based on query / aggreagtions setted
 
 =cut
 
@@ -248,6 +282,12 @@ sub all {
 
 }
 
+=head2 hits
+
+returns the collected hits from "all" as ArrayRef
+
+=cut
+
 sub hits {
 
     my ($self) = @_;
@@ -289,6 +329,14 @@ sub hits {
     return $result;
 }
 
+=head2 buckets
+
+returns Aggregation buckets, by Aggregation name
+
+	$elastic_rs->buckets('agg_name')
+
+=cut
+
 sub buckets {
 
     my ( $self, $agg_name ) = @_;
@@ -306,6 +354,17 @@ sub buckets {
 
     return $buckets;
 }
+
+=head2 es_index
+
+adds documents from a DBIC Resultset to the Elastic index. It calls the Elastic
+Resultset es_transform method for denormalizing Data
+
+	$elastic_rs->es_index( $dbic_rs->search_rs( { foo => bar } ) )
+
+=cut
+
+#TODO add example
 
 sub es_index {
 
@@ -360,6 +419,12 @@ sub es_create {
     }
 }
 
+=head2 es_delete
+
+Deletes Object from Elasticstorage based on a DBIC Resultset
+
+=cut
+
 sub es_delete {
 
     my $self    = shift;
@@ -379,6 +444,20 @@ sub es_delete {
     }
 }
 
+=head2 es_transform
+
+Helper Function to denormalize Data. Override it in your ElasticResultSet to transform ResultObjects.
+
+	sub es_tranform {
+
+		my ( $self, $obj ) = @_;
+
+		$obj->{another_document} = $schema->resultset('MyRS')->find( { id => 5 } )->get_columns
+
+	}
+
+=cut
+
 sub es_transform {
 
     my ( $self, $obj ) = @_;
@@ -386,6 +465,14 @@ sub es_transform {
     # overwrite transform in Elasticsearch::ResultSet's to do actions on it
     return $obj;
 }
+
+=head2 es_batch_index
+
+Indexing huge Resultsets with the Search::Elasticsearch Bulkhelper.
+
+Use this method for bigger Resultlists to speed up Indexing
+
+=cut
 
 sub es_batch_index {
     warn "Batch Indexing...\n";
@@ -432,6 +519,12 @@ sub es_batch_index {
     1;
 }
 
+=head2 es_id
+
+Builds the document ID for the Elasticstorage based on the columns setted up in the specific ElasticResultSet
+
+=cut
+
 sub es_id {
 
     my $self = shift;
@@ -450,6 +543,12 @@ sub es_id {
 
     return join '_', @$ids;
 }
+
+=head2
+
+returns Search::Elasticsearch Object from Schemastorage
+
+=cut
 
 sub es {
 
