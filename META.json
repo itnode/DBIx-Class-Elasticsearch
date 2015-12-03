@@ -1,7 +1,7 @@
 {
    "abstract" : "Helps keep your data in Sync with Elastic",
    "author" : [
-      "* Jens Gassmann  <jg@gassmann.it>"
+      "=over"
    ],
    "dynamic_config" : 0,
    "generated_by" : "Minilla/v2.4.1, CPAN::Meta::Converter version 2.142690",
@@ -13,17 +13,6 @@
       "version" : "2"
    },
    "name" : "DBIx-Class-ElasticSync",
-   "resources" : {
-	"repository" : {
-		"url" : "https://github.com/itnode/DBIx-Class-Elasticsearch.git",
-		"web" : "https://github.com/itnode/DBIx-Class-Elasticsearch",
-		"type" : "git"
-		
-	},
-	"bugtracker" : {
-		"web" : "https://github.com/itnode/DBIx-Class-Elasticsearch/issues"
-	}
-   },
    "no_index" : {
       "directory" : [
          "t",
@@ -54,8 +43,12 @@
       "runtime" : {
          "requires" : {
             "DBIx::Class" : "0",
+            "DBIx::Class::ResultClass::HashRefInflator" : "0",
+            "DateTime::Format::MySQL" : "0",
             "Moose::Role" : "0",
             "Search::Elasticsearch" : "0",
+            "Search::Elasticsearch::Compat::QueryParser" : "0",
+            "namespace::autoclean" : "0",
             "perl" : "5.008001"
          }
       },
@@ -66,11 +59,12 @@
       }
    },
    "release_status" : "unstable",
-   "version" : "0.03",
+   "version" : "0.04",
    "x_contributors" : [
       "Sales User <sales@nydsosweb6.(none)>",
       "Chris Shepherd <cshepherd@about.com>",
       "Jens Gassmann <jens.gassmann@atomix.de>",
+      "Patrick Simon <info@webentwicklung-ruhr.de>",
       "Patrick Kilter <pas.freelance@googlemail.com>"
    ]
 }

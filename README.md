@@ -12,7 +12,12 @@ It helps you, to denormalize your relational database schema to fit into the doc
 
 This repository is under development. API changes are possible at this point of time. We will create more documentation if we tested this in the wild.
 
-head2 Setting up your DBIx::Model
+## TODO
+
+- Add an Application Example
+- Complete the Docs
+
+## Setting up your DBIx::Model
 
 ### Adding role to your Schema Class
 
@@ -42,5 +47,5 @@ This module is based on Chris 'SchepFc3' Shepherd work, which you can find here:
 
 ## Authors
 
-\* Jens Gassmann  <jg@gassmann.it>
-\* Patrick Kilter <pk@gassmann.it>
+- Jens Gassmann  <jg@gassmann.it>
+=item Patrick Kilter <pk@gassmann.it>

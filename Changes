@@ -2,6 +2,14 @@ Revision history for Perl extension DBIx-Class-ElasticSync
 
 {{$NEXT}}
 
+0.04 2015-12-03T12:42:42Z
+
+    - Added base docs to describe the Methods
+    - Fixed POD Errors
+    - Completed cpanfile
+    - fixed compile test
+    - added META data
+
 0.03 2015-12-02T11:51:59Z
 
     - Rename to DBIx-Class-ElasticSync
