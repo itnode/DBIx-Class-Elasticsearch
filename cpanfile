@@ -7,4 +7,7 @@ on 'test' => sub {
 requires "Search::Elasticsearch";
 requires "Moose::Role";
 requires "DBIx::Class";
-
+requires "DBIx::Class::ResultClass::HashRefInflator";
+requires "Search::Elasticsearch::Compat::QueryParser";
+requires "namespace::autoclean";
+requires "DateTime::Format::MySQL";
