@@ -235,8 +235,6 @@ sub all {
 
     $search_params = {} unless ref $search_params eq 'HASH';
 
-    use Data::Printer;
-
     my $queries = $self->queries;
     my $filters = $self->filters;
     my $aggs    = $self->aggs;
