@@ -70,7 +70,7 @@
          "web" : "https://github.com/itnode/DBIx-Class-Elasticsearch"
       }
    },
-   "version" : "0.05",
+   "version" : "0.06",
    "x_contributors" : [
       "Sales User <sales@nydsosweb6.(none)>",
       "Chris Shepherd <cshepherd@about.com>",
