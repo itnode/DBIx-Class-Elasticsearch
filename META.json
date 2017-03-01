@@ -4,7 +4,7 @@
       "=over"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v2.4.1, CPAN::Meta::Converter version 2.142690",
+   "generated_by" : "Minilla/v3.0.10, CPAN::Meta::Converter version 2.150005",
    "license" : [
       "unknown"
    ],
@@ -59,6 +59,17 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/itnode/DBIx-Class-Elasticsearch/issues"
+      },
+      "homepage" : "https://github.com/itnode/DBIx-Class-Elasticsearch",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/itnode/DBIx-Class-Elasticsearch.git",
+         "web" : "https://github.com/itnode/DBIx-Class-Elasticsearch"
+      }
+   },
    "version" : "0.04",
    "x_contributors" : [
       "Sales User <sales@nydsosweb6.(none)>",
@@ -66,5 +77,6 @@
       "Jens Gassmann <jens.gassmann@atomix.de>",
       "Patrick Simon <info@webentwicklung-ruhr.de>",
       "Patrick Kilter <pas.freelance@googlemail.com>"
-   ]
+   ],
+   "x_serialization_backend" : "JSON::PP version 2.27300"
 }
