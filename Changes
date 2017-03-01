@@ -2,6 +2,8 @@ Revision history for Perl extension DBIx-Class-ElasticSync
 
 {{$NEXT}}
 
+0.05 2017-03-01T16:04:13Z
+
     - Change elastic_connect to same format 
     
 

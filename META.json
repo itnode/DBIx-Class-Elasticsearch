@@ -70,13 +70,13 @@
          "web" : "https://github.com/itnode/DBIx-Class-Elasticsearch"
       }
    },
-   "version" : "0.04",
+   "version" : "0.05",
    "x_contributors" : [
       "Sales User <sales@nydsosweb6.(none)>",
       "Chris Shepherd <cshepherd@about.com>",
-      "Jens Gassmann <jens.gassmann@atomix.de>",
       "Patrick Simon <info@webentwicklung-ruhr.de>",
-      "Patrick Kilter <pas.freelance@googlemail.com>"
+      "Patrick Kilter <pas.freelance@googlemail.com>",
+      "Jens Gassmann <jens.gassmann@atomix.de>"
    ],
    "x_serialization_backend" : "JSON::PP version 2.27300"
 }
