@@ -41,7 +41,7 @@ sub es {
             eval "use Log::Any::Adapter qw(Stderr);";
         }
 
-        $self->es_store( Search::Elasticsearch->new( %$settings );
+        $self->es_store( Search::Elasticsearch->new( %$settings ) );
 
     }
 

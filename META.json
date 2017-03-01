@@ -1,5 +1,5 @@
 {
-   "abstract" : "Helps keep your data in Sync with Elastic",
+   "abstract" : "Helps keep your data in sync with elasticsearch",
    "author" : [
       "=over"
    ],

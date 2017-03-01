@@ -14,14 +14,14 @@ __END__
 
 =head1 NAME
 
-DBIx::Class::ElasticSync - Helps keep your data in Sync with Elastic
+DBIx::Class::ElasticSync - Helps keep your data in sync with elasticsearch
 
 
 =head2 Description
 
-DBIx::Class::Elasticsearch is a Module to link your DBIx::Class Schema to Elastic faster.
+DBIx::Class::ElasticSync is a Module to link your DBIx::Class Schema to elasticsearch faster.
 
-It helps you, to denormalize your relational database schema to fit into the document orientated elastic store
+It helps you, to denormalize your relational database schema to fit into the document orientated elasticsearch store
 
 =head2 Warning
 
@@ -41,23 +41,23 @@ This repository is under development. API changes are possible at this point of 
 
 =head3 Adding role to your Schema Class
 
-    with 'DBIx::Class::Elasticsearch::Role::ElasticSchema';
+    with 'DBIx::Class::ElasticSync::Role::ElasticSchema';
 
-In advanced you need to handle over your Schema the connection informations for Elastic
+In advanced you need to handle over your Schema the connection informations for Elasticsearch
 
-    $schema->connect_elastic( { host => "localhost", port => 9200, index => "MyApp" } );
+    $schema->connect_elastic( { nodes => "localhost:9200" } );
 
 =head3 Adding role to your Result Class
 
-    with 'DBIx::Class::Elasticsearch::Role::ElasticResult';
+    with 'DBIx::Class::ElasticSync::Role::ElasticResult';
 
 =head3 Building your own ElasticResultSet Classes
 
-    extends 'Elasticsearch::ResultSet';
+    extends 'ElasticSync::ResultSet';
 
 =head3 Running your Application
 
-DBIx::Class::Elasticsearch::Role will hook into your insert, update and delete DBIx::Class::Row methods. If you change Data in your Database, it will be synced with the Elastic Storage.
+DBIx::Class::ElasticSync::Role will hook into your insert, update and delete DBIx::Class::Row methods. If you change Data in your Database, it will be synced with the elasticsearch.
 
 =head2 Credits
 
